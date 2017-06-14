@@ -1,0 +1,39 @@
+{
+  "name": "calculate_risk_for_zika",
+  "version": "1.0.0",
+  "description": "Calculates risk of Zika in a country based on population, weather conditions, mosquito prevelene and number of travellers coming into the country",
+  "main": "config.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/unicef/calculate_risk_for_zika"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/unicef/calculate_risk_for_zika/issues"
+  },
+  "homepage": "https://github.com/unicef/calculate_risk_for_zika#readme",
+  "dependencies": {
+    "argparse": "^1.0.9",
+    "async": "^2.4.1",
+    "azure-storage": "^2.1.0",
+    "bluebird": "^3.5.0",
+    "csvtojson": "^1.1.6",
+    "get-hrefs": "^1.0.3",
+    "jsonfile": "^3.0.0",
+    "moment": "^2.18.1",
+    "request": "^2.81.0",
+    "xlsx": "^0.10.3"
+  },
+  "devDependencies": {
+  "eslint": "^3.19.0",
+  "eslint-config-google": "^0.7.1",
+  "eslint-config-xo": "^0.11.0",
+  "husky": "^0.13.4",
+  "should": "^7.1.0",
+  "supertest": "^1.0.0"
+  },
+  "scripts": {
+    "precommit": "./preCommitChecks.sh"
+  }
+}
