@@ -31,8 +31,7 @@
     "eslint-config-xo": "^0.11.0",
     "husky": "^0.13.4",
     "should": "^7.1.0",
-    "supertest": "^1.0.0",
-    "testdouble": "^3.0.0"
+    "supertest": "^1.0.0"
   },
   "scripts": {
     "precommit": "./preCommitChecks.sh"

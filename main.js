@@ -1,4 +1,5 @@
-var config = require('./config');
+// var config = require('./config');
+var getConfig = require('./lib/config_helper').getConfig;
 var ArgumentParser = require('argparse').ArgumentParser;
 var bluebird = require('bluebird');
 var async = require('async');
@@ -30,49 +31,56 @@ var mosquito = {aegypti:{}, albopictus:{}};
 var traffic = {};
 var cases = {};
 
-console.log("started!!");
-async.waterfall([
-  function (callback) {
-    getPopulationByKey()
-    .then(() => {
-      callback();
-    })
-    .catch(error => {
-      console.log('Error!!', error);
-    });
-  },
-  function (callback) {
-    getMosquito()
-    .then(() => {
-      callback();
-    });
-  },
-  function (callback) {
-    getCases()
-    .then(() => {
-      callback()
-    });
-  },
-  function (callback) {
-    getTravelData()
-    .then(() => {
-      callback(null)
-    });
-  }
-], (error) => {
-  console.log('done!');
-  var model_1 = calculateRiskByModel1();
-  fs.writeFileSync(`${config.output_path}/${disease}/model_1.json`, JSON.stringify(model_1));
-  var model_2 = calculateRiskByModel2(model_1);
-  fs.writeFileSync(`${config.output_path}/${disease}/model_2.json`, JSON.stringify(model_2));
-  var model_3 = calculateRiskByModel3(model_1);
-  fs.writeFileSync(`${config.output_path}/${disease}/model_3.json`, JSON.stringify(model_3));
-  console.log("Wrote!!");
-});
+if (disease !== null) {
+  calculateRisk(disease);
+}
 
-function getPopulationByKey() {
+function calculateRisk(disease) {
+  console.log("started!!");
+  async.waterfall([
+    function (callback) {
+      getPopulationByKey()
+      .then(() => {
+        callback();
+      })
+      .catch(error => {
+        console.log('Error!!', error);
+      });
+    },
+    function (callback) {
+      getMosquito()
+      .then(() => {
+        callback();
+      });
+    },
+    function (callback) {
+      getCases(disease)
+      .then(() => {
+        callback()
+      });
+    },
+    function (callback) {
+      getTravelData()
+      .then(() => {
+        callback(null)
+      });
+    }
+  ], (error) => {
+    console.log('done!');
+    var model_1 = calculateRiskByModel1();
+    fs.writeFileSync(`${getConfig('output_path')}/${disease}/model_1.json`, JSON.stringify(model_1));
+    var model_2 = calculateRiskByModel2(model_1);
+    fs.writeFileSync(`${getConfig('output_path')}/${disease}/model_2.json`, JSON.stringify(model_2));
+    var model_3 = calculateRiskByModel3(model_1);
+    fs.writeFileSync(`${getConfig('output_path')}/${disease}/model_3.json`, JSON.stringify(model_3));
+    console.log("Wrote!!");
+  });
+}
+
+
+function getPopulationByKey(path) {
   return new Promise(function(resolve, reject) {
-    population_aggregator.getPopulationByKey('population')
+    population_aggregator.getPopulationByKey('population', path)
     .then(content => {
       Object.assign(population, content);
       return resolve();
@@ -84,9 +92,9 @@ function getPopulationByKey() {
 }
 
 
-function getMosquito() {
+function getMosquito(path) {
   return new Promise(function(resolve, reject) {
-    population_aggregator.getPopulationByKey('aegypti')
+    population_aggregator.getPopulationByKey('aegypti', path)
     .then(content => {
       Object.assign(mosquito.aegypti, content);
     })
@@ -106,10 +114,13 @@ function getMosquito() {
 }
 
 
-function getTravelData() {
+function getTravelData(path) {
   return new Promise(function(resolve, reject) {
     // get file list
-    pro_fs.readdirAsync(config.travel.path)
+    if (path === undefined) {
+      path = getConfig('travel', 'path')
+    }
+    pro_fs.readdirAsync(path)
     .then(fileList => {
       var files = fileList.entries.files;
       bluebird.each(fileList, file => {
@@ -128,9 +139,12 @@ function getTravelData() {
 }
 
 
-function aggregateTravels(fileName, date) {
+function aggregateTravels(fileName, date, path) {
   return new Promise(function(resolve, reject) {
-    pro_fs.readFileAsync(config.travel.path + fileName, 'utf8')
+    if (path === undefined) {
+      path = getConfig('travel', 'path')
+    }
+    pro_fs.readFileAsync(path + fileName, 'utf8')
     .then(content => {
       csv({flatKeys:true})
       .fromString(content)
@@ -154,12 +168,15 @@ function aggregateTravels(fileName, date) {
 }
 
 
-function getCases() {
+function getCases(disease, path) {
   return new Promise(function(resolve, reject) {
-    pro_fs.readdirAsync(config.cases[disease].fs_dir)
+    if (path === undefined) {
+      path = getConfig('cases', disease).path;
+    }
+    pro_fs.readdirAsync(path)
     .then(files => {
       bluebird.each(files, file => {
-         return readCaseFile(file);
+         return readCaseFile(disease, file, path);
       }, {concurency : 1})
       .then(resolve)
     })
@@ -170,11 +187,14 @@ function getCases() {
   });
 }
 
-function readCaseFile(file) {
+function readCaseFile(disease, file, path) {
   return new Promise(function(resolve, reject) {
     var date = file.split('.')[0];
     cases[date] = {};
-    jsonfile(config.cases[disease].fs_dir + file)
+    if (path === undefined) {
+      path = getConfig('cases', disease).path
+    }
+    jsonfile(path + file)
     .then(content => {
       Object.assign(cases[date], content.countries);
       return resolve();
@@ -254,4 +274,20 @@ function calculateRiskByModel3(model_1) {
     })
   })
   return score_json;
+}
+
+module.exports = {
+  population,
+  mosquito,
+  cases,
+  traffic,
+  getPopulationByKey,
+  getMosquito,
+  getTravelData,
+  aggregateTravels,
+  getCases,
+  readCaseFile,
+  calculateRiskByModel1,
+  calculateRiskByModel2,
+  calculateRiskByModel3
 }
