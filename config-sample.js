@@ -1,43 +1,29 @@
 module.exports = {
   cases: {
     zika: {
-      dir: 'aggregations',
-      path: 'cases/zika/paho/iso',
-      format: 'json',
-      url: 'cases/zika/paho/iso/',
-      fs_dir: '../mnt/cases/zika/paho/iso/'
+      path: '../mnt/cases/zika/paho/iso/',
+      test_path: './test/data/cases/zika/paho/iso/',
+      format: 'json'
     }
   },
   travel: {
-    dir: 'aggregations',
     path: '../mnt/mobility/amadeus/traffic/country/',
+    test_path: './test/data/amadeus/traffic/country/',
     format: '.csv'
   },
   population: {
-    dir: 'aggregations',
     path: '../mnt/population/worldpop/',
+    test_path: './test/data/population/worldpop/',
     format: 'json'
   },
-  // mosquito: {
-  //   aegypti: {
-  //     dir: 'aggregations',
-  //     path: '../mnt/aegypti/simon_hay/',
-  //     format: 'json'
-  //   },
-  //   albopictus: {
-  //     dir : 'aggregations',
-  //     path: '../mnt/albopictus/simon_hay/',
-  //     format: 'json'
-  //   }
-  // },
   aegypti: {
-    dir: 'aggregations',
     path: '../mnt/aegypti/simon_hay/',
+    test_path: './test/data/aegypti/simon_hay/',
     format: 'json'
   },
   albopictus: {
-    dir : 'aggregations',
     path: '../mnt/albopictus/simon_hay/',
+    test_path: './test/data/albopictus/simon_hay/',
     format: 'json'
   },
   output_path : '../mnt/risk/'
