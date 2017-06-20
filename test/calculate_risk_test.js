@@ -1,11 +1,11 @@
 const expect = require('chai').expect;
 const assert = require('chai').assert;
-// var chai = require('chai');
 const main = require('../calculate_risk')
 const bluebird = require('bluebird');
 const fs = require('fs');
 let calculateRisk, model_1;
 
+// path of folders holding test data
 const testPaths = {
   cases: {
     zika: {
@@ -17,6 +17,7 @@ const testPaths = {
   travel: './test/data/amadeus/traffic/country/'
 };
 
+// expected data of the tests
 const expected_data = {
   population: {
     ecu: [{sum: 17404905, sq_km: 99081}],
@@ -152,6 +153,11 @@ describe('testing models', () => {
   })
 })
 
+
+/**
+ * This function calculates risk using model 1 and expected data
+ * @return {Object} risk calculated using model 1
+ */
 const expectedModel1 = () => {
   let model_1 = {}
   let sum_new = 0;
@@ -168,7 +174,10 @@ const expectedModel1 = () => {
   return model_1;
 }
 
-
+/**
+ * This function calculates risk using model 2 and expected data
+ * @return {Object} risk calculated using model 2
+ */
 const expectedModel3 = (model_1) => {
   let model_3 = {}
 
@@ -178,6 +187,11 @@ const expectedModel3 = (model_1) => {
   return model_3;
 }
 
+
+/**
+ * This function calculates risk using model 3 and expected data
+ * @return {Object} risk calculated using model 3
+ */
 const expectedModel2 = (model_1) => {
   let model_2 = {}
 

@@ -9,14 +9,23 @@ const jsonfile = bluebird.promisify(require('jsonfile').readFile);
 const csv = require('csvtojson');
 const country_codes = require('./country_codes');
 
+// objects to store data
 let population = {};
 let mosquito = {aegypti:{}, albopictus:{}};
 let traffic = {};
 let cases = {};
 
+/**
+ * This function will fetch all the data required to calculate risk of an epidemic
+ * and will calculate risk using callback function. If callback is not specified it uses calculateRisk
+ * @param  {String}   disease  name of disease
+ * @param  {Object}   in_path  input paths for all data elements
+ * @param  {Function} callback callback function to calculate risk
+ */
 let getRisk = (disease, in_path, callback) => {
   callback = callback || calculateRisk
   async.waterfall([
+    // get population
     (callback) => {
       let path = undefined;
       if (in_path !== undefined) {
@@ -30,6 +39,7 @@ let getRisk = (disease, in_path, callback) => {
         console.log('Error!!', error);
       });
     },
+    // get mosquito prevelence
     (callback) => {
       let path = undefined;
       if (in_path !== undefined) {
@@ -40,6 +50,7 @@ let getRisk = (disease, in_path, callback) => {
         callback();
       });
     },
+    // get cases of disease specified
     (callback) => {
       let path = undefined;
       if (in_path !== undefined) {
@@ -50,6 +61,7 @@ let getRisk = (disease, in_path, callback) => {
         callback()
       });
     },
+    // get travel data
     (callback) => {
       let path = undefined;
       if (in_path !== undefined) {
@@ -63,6 +75,13 @@ let getRisk = (disease, in_path, callback) => {
   ], callback
 )}
 
+
+/**
+ * This function will calculate risk based on 3 models specified here:
+ * https://docs.google.com/document/d/1HXza92vgSsFwhtXG8r7pSphXda_yPzdtY0OOGfdMMpk/edit#heading=h.4xf8sw2x1upl
+ * @param  {String} error   error message
+ * @param  {String} disease name of disease
+ */
 let calculateRisk = (error, disease) => {
   console.log('writing result!');
   let output_path = getConfig('output_path')
@@ -76,7 +95,11 @@ let calculateRisk = (error, disease) => {
   console.log("Wrote!!");
 }
 
-
+/**
+ * Function to fetch population
+ * @param  {String} path path of input folder
+ * @return {Promise} Fulfilled when records are returned
+ */
 let getPopulationByKey = (path) => {
   return new Promise((resolve, reject) => {
     population_aggregator.getPopulationByKey('population', path)
@@ -90,7 +113,11 @@ let getPopulationByKey = (path) => {
   });
 }
 
-
+/**
+ * Function to fetch mosquito prevelence
+ * @param  {String} path path of input folder
+ * @return {Promise} Fulfilled when records are returned
+ */
 let getMosquito = (path) => {
   return new Promise((resolve, reject) => {
     population_aggregator.getPopulationByKey('aegypti', path)
@@ -112,7 +139,11 @@ let getMosquito = (path) => {
   });
 }
 
-
+/**
+ * Function to fetch travel data
+ * @param  {String} path path of input folder
+ * @return {Promise} Fulfilled when records are returned
+ */
 let getTravelData = (path) => {
   return new Promise((resolve, reject) => {
     if (path === undefined) {
@@ -137,7 +168,14 @@ let getTravelData = (path) => {
   });
 }
 
-
+/**
+ * This function will read a CSV file having travel data and will store the data in format:
+ * { dest: { orig: <count of people travelling from orig to dest> } }
+ * @param  {String} fileName name if the file to read
+ * @param  {String} date     date for which the data is read
+ * @param  {String} path     path of input folder
+ * @return {Promise} Fulfilled when records are returned
+ */
 let aggregateTravels = (fileName, date, path) => {
   return new Promise((resolve, reject) => {
     if (path === undefined) {
@@ -167,7 +205,12 @@ let aggregateTravels = (fileName, date, path) => {
   });
 }
 
-
+/**
+ * Function to fetch cases
+ * @param  {String} disease name of the disease
+ * @param  {String} path     path of input folder
+ * @return {Promise} Fulfilled when records are returned
+ */
 let getCases = (disease, path) => {
   return new Promise((resolve, reject) => {
     if (path === undefined) {
@@ -188,6 +231,13 @@ let getCases = (disease, path) => {
   });
 }
 
+/**
+ * This function will read a JSON file holding cases of specified disease
+ * @param  {String} disease name of the disease
+ * @param  {String} file    name if the file to read
+ * @param  {String} path     path of input folder
+ * @return {Promise} Fulfilled when records are returned
+ */
 let readCaseFile = (disease, file, path) => {
   return new Promise((resolve, reject) => {
     const date = file.split('.')[0];
@@ -207,6 +257,11 @@ let readCaseFile = (disease, file, path) => {
   });
 }
 
+/**
+ * calculates risk of disease using first model specified here:
+https://docs.google.com/document/d/1HXza92vgSsFwhtXG8r7pSphXda_yPzdtY0OOGfdMMpk/edit#heading=h.5yyfyohzaii1
+ * @return {Object} risk using first model for each country
+ */
 let calculateRiskByModel1 = () => {
   let score_json = '';
   let return_val = {};
@@ -245,6 +300,12 @@ let calculateRiskByModel1 = () => {
   return return_val;
 }
 
+
+/**
+ * calculates risk of disease using second model specified here:
+https://docs.google.com/document/d/1HXza92vgSsFwhtXG8r7pSphXda_yPzdtY0OOGfdMMpk/edit#heading=h.5yyfyohzaii1
+ * @return {Object} risk using second model for each country
+ */
 let calculateRiskByModel2 = (model_1) => {
   Object.keys(model_1).forEach(case_date => {
     Object.keys(model_1[case_date]).forEach(country => {
@@ -259,6 +320,12 @@ let calculateRiskByModel2 = (model_1) => {
   return model_1;
 }
 
+
+/**
+ * calculates risk of disease using third model specified here:
+https://docs.google.com/document/d/1HXza92vgSsFwhtXG8r7pSphXda_yPzdtY0OOGfdMMpk/edit#heading=h.5yyfyohzaii1
+ * @return {Object} risk using third model for each country
+ */
 let calculateRiskByModel3 = (model_1) => {
   Object.keys(model_1).forEach(case_date => {
     Object.keys(model_1[case_date]).forEach(country => {
