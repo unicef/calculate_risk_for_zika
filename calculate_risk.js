@@ -27,10 +27,10 @@ let getRisk = (disease, in_path, callback) => {
   async.waterfall([
     // get population
     (callback) => {
-      let path = undefined;
-      if (in_path !== undefined) {
-        path = in_path.population;
-      }
+      let path = in_path.population || getConfig('population', 'path')
+      // if (in_path !== undefined) {
+      //   path = in_path.population;
+      // }
       getPopulationByKey(path)
       .then(() => {
         callback();
@@ -41,10 +41,11 @@ let getRisk = (disease, in_path, callback) => {
     },
     // get mosquito prevelence
     (callback) => {
-      let path = undefined;
-      if (in_path !== undefined) {
-        path = in_path.aegypti;
-      }
+      // let path = undefined;
+      // if (in_path !== undefined) {
+      //   path = in_path.aegypti;
+      // }
+      let path = in_path.aegypti || getConfig('aegypti', 'path')
       getMosquito(path)
       .then(() => {
         callback();
@@ -52,10 +53,11 @@ let getRisk = (disease, in_path, callback) => {
     },
     // get cases of disease specified
     (callback) => {
-      let path = undefined;
-      if (in_path !== undefined) {
-        path = in_path.cases.zika.path;
-      }
+      let path = in_path.cases.zika.path || getConfig('cases', 'zika').path
+      // let path = undefined;
+      // if (in_path !== undefined) {
+      //   path = in_path.cases.zika.path;
+      // }
       getCases(disease, path)
       .then(() => {
         callback()
@@ -63,10 +65,11 @@ let getRisk = (disease, in_path, callback) => {
     },
     // get travel data
     (callback) => {
-      let path = undefined;
-      if (in_path !== undefined) {
-        path = in_path.travel;
-      }
+      // let path = undefined;
+      // if (in_path !== undefined) {
+      //   path = in_path.travel;
+      // }
+      let path = in_path.travel || getConfig('travel', 'path')
       getTravelData(path)
       .then(() => {
         callback(null, disease)
