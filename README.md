@@ -1,5 +1,7 @@
 # calculate_risk_for_zika
 
+#### Calculates risk of disease using models specified [here](https://docs.google.com/document/d/1HXza92vgSsFwhtXG8r7pSphXda_yPzdtY0OOGfdMMpk/edit#heading=h.5yyfyohzaii1)
+
 ### Steps to run:
 ##### 1. Clone
 ```bash

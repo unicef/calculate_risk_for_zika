@@ -108,95 +108,54 @@ describe('testing data fetching', function() {
 
 describe('testing models', () => {
 
-  before(() => {
-    calculateRisk = bluebird.promisify(main.getRisk);
-  })
 
-  it('testing model 1', (done) => {
-    calculateRisk('zika', testPaths)
-    .then((err, result) => {
-      var calculated_model_1 = main.calculateRiskByModel1()['2017-04-24'];
-      var expected_model_1 = expectedModel1();
+  it('testing all models for zika', (done) => {
+    main.getRisk('zika', testPaths)
+    .then(model => {
+      var expected_model = expectedModel()
+      var result = model['2017-04-24']
 
-      expect(calculated_model_1.mex.model_1.score_new).to.equal(expected_model_1.model_1_score_new);
-      expect(calculated_model_1.mex.model_1.score_cummulative).to.equal(expected_model_1.model_1_score_cummulative);
-      model_1 = calculated_model_1;
-    })
-    done();
-  })
+      expect(result.mex.model_1.score_new).to.equal(expected_model.model_1.score_new);
+      expect(result.mex.model_1.score_cummulative).to.equal(expected_model.model_1.score_cummulative);
 
+      expect(result.mex.model_2.score_new).to.equal(expected_model.model_2.score_new);
+      expect(result.mex.model_2.score_cummulative).to.equal(expected_model.model_2.score_cummulative);
 
-  it('testing model 2', (done) => {
-    calculateRisk('zika', testPaths)
-    .then((err, result) => {
-      var calculated_model_1 = main.calculateRiskByModel1();
-      var calculated_model_2 = main.calculateRiskByModel2(calculated_model_1)['2017-04-24'];
-      var expected_model_2 = expectedModel2(model_1);
-
-      expect(calculated_model_2.mex.model_2.score_new).to.equal(expected_model_2.model_2_score_new);
-      expect(calculated_model_2.mex.model_2.score_cummulative).to.equal(expected_model_2.model_2_score_cummulative);
-    })
-    done();
-  })
-
-  it('testing model 3', (done) => {
-    calculateRisk('zika', testPaths)
-    .then((err, result) => {
-      var calculated_model_1 = main.calculateRiskByModel1();
-      var calculated_model_3 = main.calculateRiskByModel3(calculated_model_1)['2017-04-24'];
-      var expected_model_3 = expectedModel3(model_1);
-
-      expect(calculated_model_3.mex.model_3.score_new).to.equal(expected_model_3.model_3_score_new);
-      expect(calculated_model_3.mex.model_3.score_cummulative).to.equal(expected_model_3.model_3_score_cummulative);
+      expect(result.mex.model_3.score_new).to.equal(expected_model.model_3.score_new);
+      expect(result.mex.model_3.score_cummulative).to.equal(expected_model.model_3.score_cummulative);
     })
     done();
   })
 })
 
-
 /**
- * This function calculates risk using model 1 and expected data
- * @return {Object} risk calculated using model 1
+ * This function will calculate expected values for all the models.
+ * For calculations it will use values from expected_data
+ * @return {Object} expected result for all the models
  */
-const expectedModel1 = () => {
-  let model_1 = {}
+function expectedModel() {
+  let model = {model_1: {}, model_2: {}, model_3: {}}
   let sum_new = 0;
   let sum_cummulative = 0;
+
+  // calculating the summation
   Object.keys(expected_data.travels.mex).forEach(country => {
     sum_new += ( expected_data.travels.mex[country] * ( expected_data.cases.zika[country].new_cases_this_week / expected_data.population[country][0].sum ));
 
     sum_cummulative += ( expected_data.travels.mex[country] * ( expected_data.cases.zika[country].cases_cumulative / expected_data.population[country][0].sum ));
   })
 
-  model_1.model_1_score_new = sum_new * expected_data.mosquito.aegypti.mex[0].sum;
-  model_1.model_1_score_cummulative = sum_cummulative * expected_data.mosquito.aegypti.mex[0].sum;
+  // calculating model 1
+  model.model_1.score_new = sum_new * expected_data.mosquito.aegypti.mex[0].sum;
+  model.model_1.score_cummulative = sum_cummulative * expected_data.mosquito.aegypti.mex[0].sum;
 
-  return model_1;
-}
+  // calculating model 2
+  model.model_2.score_new = model.model_1.score_new / expected_data.population.mex[0].sum
+  model.model_2.score_cummulative = model.model_1.score_cummulative / expected_data.population.mex[0].sum
 
-/**
- * This function calculates risk using model 2 and expected data
- * @return {Object} risk calculated using model 2
- */
-const expectedModel3 = (model_1) => {
-  let model_3 = {}
+  // calculating model 3
+  model.model_3.score_new = model.model_1.score_new * expected_data.population.mex[0].sum * expected_data.population.mex[0].sq_km
+  model.model_3.score_cummulative = model.model_1.score_cummulative * expected_data.population.mex[0].sum * expected_data.population.mex[0].sq_km
 
-  model_3.model_3_score_new = model_1.mex.model_1.score_new * expected_data.population.mex[0].sum * expected_data.population.mex[0].sq_km;
-  model_3.model_3_score_cummulative = model_1.mex.model_1.score_cummulative * expected_data.population.mex[0].sum * expected_data.population.mex[0].sq_km;
-
-  return model_3;
-}
-
-
-/**
- * This function calculates risk using model 3 and expected data
- * @return {Object} risk calculated using model 3
- */
-const expectedModel2 = (model_1) => {
-  let model_2 = {}
-
-  model_2.model_2_score_new = model_1.mex.model_1.score_new / expected_data.population.mex[0].sum;
-  model_2.model_2_score_cummulative = model_1.mex.model_1.score_cummulative / expected_data.population.mex[0].sum;
-
-  return model_2;
+  return model;
 }

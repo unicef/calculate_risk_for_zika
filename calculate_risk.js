@@ -3,15 +3,14 @@ const getConfig = require('./lib/config_helper').getConfig;
 const bluebird = require('bluebird');
 const async = require('async');
 const population_aggregator = require('./lib/population_aggregator');
-const fs = require('fs');
-const pro_fs = bluebird.promisifyAll(fs);
+const fs = bluebird.promisifyAll(require('fs'));
 const jsonfile = bluebird.promisify(require('jsonfile').readFile);
 const csv = require('csvtojson');
 const country_codes = require('./country_codes');
 
 // objects to store data
 let population = {};
-let mosquito = {aegypti:{}, albopictus:{}};
+let mosquito = {aegypti:{}};
 let traffic = {};
 let cases = {};
 
@@ -22,84 +21,57 @@ let cases = {};
  * @param  {Object}   in_path  input paths for all data elements
  * @param  {Function} callback callback function to calculate risk
  */
-let getRisk = (disease, in_path, callback) => {
-  callback = callback || calculateRisk
-  async.waterfall([
-    // get population
-    (callback) => {
-      let path = in_path.population || getConfig('population', 'path')
-      // if (in_path !== undefined) {
-      //   path = in_path.population;
-      // }
-      getPopulationByKey(path)
-      .then(() => {
-        callback();
-      })
-      .catch(error => {
-        console.log('Error!!', error);
-      });
-    },
-    // get mosquito prevelence
-    (callback) => {
-      // let path = undefined;
-      // if (in_path !== undefined) {
-      //   path = in_path.aegypti;
-      // }
-      let path = in_path.aegypti || getConfig('aegypti', 'path')
-      getMosquito(path)
-      .then(() => {
-        callback();
-      });
-    },
-    // get cases of disease specified
-    (callback) => {
-      let path = in_path.cases.zika.path || getConfig('cases', 'zika').path
-      // let path = undefined;
-      // if (in_path !== undefined) {
-      //   path = in_path.cases.zika.path;
-      // }
-      getCases(disease, path)
-      .then(() => {
-        callback()
-      });
-    },
-    // get travel data
-    (callback) => {
-      // let path = undefined;
-      // if (in_path !== undefined) {
-      //   path = in_path.travel;
-      // }
-      let path = in_path.travel || getConfig('travel', 'path')
-      getTravelData(path)
-      .then(() => {
-        callback(null, disease)
-      });
-    }
-  ], callback
-)}
+let getRisk = (disease, in_path) => {
 
-
-/**
- * This function will calculate risk based on 3 models specified here:
- * https://docs.google.com/document/d/1HXza92vgSsFwhtXG8r7pSphXda_yPzdtY0OOGfdMMpk/edit#heading=h.4xf8sw2x1upl
- * @param  {String} error   error message
- * @param  {String} disease name of disease
- */
-let calculateRisk = (error, disease) => {
-  console.log('writing result!');
-  let output_path = getConfig('output_path')
-  let model_1 = calculateRiskByModel1();
-  let model_2 = calculateRiskByModel2(model_1);
-  let model_3 = calculateRiskByModel3(model_1);
-
-  Object.keys(model_3).forEach(date => {
-    fs.writeFileSync(`${output_path}/${disease}/${date}.json`, JSON.stringify(model_3[date]));
-  })
-  console.log("Wrote!!");
+  return new Promise((resolve, reject) => {
+    async.waterfall([
+      // get population and fill in population object
+      (callback) => {
+        let path = in_path ? in_path.population : getConfig('population', 'path')
+        getPopulationByKey(path)
+        .then(() => {
+          callback();
+        })
+        .catch(error => {
+          console.log('Error!!', error);
+        });
+      },
+      // get mosquito prevelence and fill in mosquito object
+      (callback) => {
+        let path = in_path ? in_path.aegypti : getConfig('aegypti', 'path')
+        getMosquito(path)
+        .then(() => {
+          callback();
+        });
+      },
+      // get cases of disease specified and fill in cases object
+      (callback) => {
+        let path = in_path ? in_path.cases.zika.path : getConfig('cases', 'zika').path
+        getCases(disease, path)
+        .then(() => {
+          callback()
+        });
+      },
+      // get travel data and fill in traffic object
+      (callback) => {
+        let path = in_path ? in_path.travel : getConfig('travel', 'path')
+        getTravelData(path)
+        .then(() => {
+          callback(null, disease)
+        });
+      }
+    ], (error, disease) => {
+      let model_1 = calculateRiskByModel1();
+      let model_2 = calculateRiskByModel2(model_1);
+      let model_3 = calculateRiskByModel3(model_1);
+      return resolve(model_3, disease);
+    })
+  });
 }
 
+
 /**
- * Function to fetch population
+ * Function to fetch population and fill in population object
  * @param  {String} path path of input folder
  * @return {Promise} Fulfilled when records are returned
  */
@@ -117,7 +89,7 @@ let getPopulationByKey = (path) => {
 }
 
 /**
- * Function to fetch mosquito prevelence
+ * Function to fetch mosquito prevelence (for now just aegypti) and fill in mosquito object
  * @param  {String} path path of input folder
  * @return {Promise} Fulfilled when records are returned
  */
@@ -131,19 +103,11 @@ let getMosquito = (path) => {
     .catch(error => {
       console.log('Error!', error);
     })
-
-    // population_aggregator.getPopulationByKey('albopictus')
-    // .then(content => {
-    //   Object.assign(mosquito.albopictus, content);
-    // })
-    // .catch(error => {
-    //   console.log('Error!', error);
-    // })
   });
 }
 
 /**
- * Function to fetch travel data
+ * Function to fetch travel data and fill in traffic object
  * @param  {String} path path of input folder
  * @return {Promise} Fulfilled when records are returned
  */
@@ -153,7 +117,7 @@ let getTravelData = (path) => {
       path = getConfig('travel', 'path')
     }
     // var path = path || getConfig('travel', 'path')
-    pro_fs.readdirAsync(path)
+    fs.readdirAsync(path)
     .then(fileList => {
       let files = fileList.entries.files;
       bluebird.each(fileList, file => {
@@ -185,7 +149,7 @@ let aggregateTravels = (fileName, date, path) => {
       path = getConfig('travel', 'path')
     }
     // var path = path || getConfig('travel', 'path')
-    pro_fs.readFileAsync(path + fileName, 'utf8')
+    fs.readFileAsync(path + fileName, 'utf8')
     .then(content => {
       csv({flatKeys:true})
       .fromString(content)
@@ -209,7 +173,7 @@ let aggregateTravels = (fileName, date, path) => {
 }
 
 /**
- * Function to fetch cases
+ * Function to fetch cases and fill in cases object
  * @param  {String} disease name of the disease
  * @param  {String} path     path of input folder
  * @return {Promise} Fulfilled when records are returned
@@ -220,7 +184,7 @@ let getCases = (disease, path) => {
       path = getConfig('cases', disease).path
     }
     // var path = path || getConfig('cases', disease).path
-    pro_fs.readdirAsync(path)
+    fs.readdirAsync(path)
     .then(files => {
       bluebird.each(files, file => {
          return readCaseFile(disease, file, path);
@@ -248,7 +212,6 @@ let readCaseFile = (disease, file, path) => {
     if (path === undefined) {
       path = getConfig('cases', disease).path
     }
-    // var path = path || getConfig('cases', disease).path
     jsonfile(path + file)
     .then(content => {
       Object.assign(cases[date], content.countries);
@@ -261,8 +224,7 @@ let readCaseFile = (disease, file, path) => {
 }
 
 /**
- * calculates risk of disease using first model specified here:
-https://docs.google.com/document/d/1HXza92vgSsFwhtXG8r7pSphXda_yPzdtY0OOGfdMMpk/edit#heading=h.5yyfyohzaii1
+ * calculates risk of disease using first model specified in the document
  * @return {Object} risk using first model for each country
  */
 let calculateRiskByModel1 = () => {
@@ -305,16 +267,13 @@ let calculateRiskByModel1 = () => {
 
 
 /**
- * calculates risk of disease using second model specified here:
-https://docs.google.com/document/d/1HXza92vgSsFwhtXG8r7pSphXda_yPzdtY0OOGfdMMpk/edit#heading=h.5yyfyohzaii1
+ * calculates risk of disease using second model specified in the document
  * @return {Object} risk using second model for each country
  */
 let calculateRiskByModel2 = (model_1) => {
   Object.keys(model_1).forEach(case_date => {
     Object.keys(model_1[case_date]).forEach(country => {
-      if (population[country] === undefined) {
-        console.log(country, 'not found');
-      } else {
+      if (population[country] !== undefined) {
         model_1[case_date][country].model_2.score_new  = model_1[case_date][country].model_1.score_new / population[country][0].sum
         model_1[case_date][country].model_2.score_cummulative = model_1[case_date][country].model_1.score_cummulative / population[country][0].sum
       }
@@ -325,16 +284,13 @@ let calculateRiskByModel2 = (model_1) => {
 
 
 /**
- * calculates risk of disease using third model specified here:
-https://docs.google.com/document/d/1HXza92vgSsFwhtXG8r7pSphXda_yPzdtY0OOGfdMMpk/edit#heading=h.5yyfyohzaii1
+ * calculates risk of disease using third model specified in the document
  * @return {Object} risk using third model for each country
  */
 let calculateRiskByModel3 = (model_1) => {
   Object.keys(model_1).forEach(case_date => {
     Object.keys(model_1[case_date]).forEach(country => {
-      if (population[country] === undefined) {
-        console.log(country, 'not found');
-      } else {
+      if (population[country] !== undefined) {
         model_1[case_date][country].model_3.score_new  = model_1[case_date][country].model_1.score_new * population[country][0].sum * population[country][0].sq_km;
         model_1[case_date][country].model_3.score_cummulative = model_1[case_date][country].model_1.score_cummulative * population[country][0].sum * population[country][0].sq_km;
       }
@@ -352,8 +308,5 @@ module.exports = {
   getMosquito,
   getTravelData,
   getCases,
-  getRisk,
-  calculateRiskByModel1,
-  calculateRiskByModel2,
-  calculateRiskByModel3
+  getRisk
 }
