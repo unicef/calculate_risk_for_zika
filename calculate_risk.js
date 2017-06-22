@@ -14,39 +14,20 @@ const country_codes = require('./country_codes');
  * @param  {Object}   in_path  input paths for all data elements
  * @param  {Function} callback callback function to calculate risk
  */
-let getRisk = (date, disease, in_path) => {
+// let getRisk = (date, disease, in_path) => {
+  let getRisk = (date, disease, population, mosquito, in_path) => {
   return new Promise((resolve, reject) => {
     async.waterfall([
-      // get population and fill in population object
+      // get cases of disease specified
       (callback) => {
-        let path = in_path ? in_path.population : getConfig('population', 'path')
-        getPopulationByKey(path)
-        .then(population => {
-          callback(null, population)
-        })
-        .catch(error => {
-          console.log('Error!!', error);
-          callback(error)
-        });
-      },
-      // get mosquito prevelence and fill in mosquito object
-      (population, callback) => {
-        let path = in_path ? in_path.aegypti : getConfig('aegypti', 'path')
-        getMosquito(path)
-        .then(mosquito => {
-          callback(null, population, mosquito);
-        });
-      },
-      // get cases of disease specified and fill in cases object
-      (population, mosquito, callback) => {
         let path = in_path ? in_path.cases.zika.path : getConfig('cases', 'zika').path
         getCases(disease, path, `${date}.json`)
         .then(cases => {
-          callback(null, population, mosquito, cases)
+          callback(null, cases)
         });
       },
-      // get travel data and fill in traffic object
-      (population, mosquito, cases, callback) => {
+      // get travel data
+      (cases, callback) => {
         let path = in_path ? in_path.travel : getConfig('travel', 'path')
         getTravelData(path, `${date}.csv`)
         .then(traffic => {
@@ -62,7 +43,6 @@ let getRisk = (date, disease, in_path) => {
     })
   });
 }
-
 
 
 /**

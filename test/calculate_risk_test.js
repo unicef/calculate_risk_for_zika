@@ -3,7 +3,7 @@ const assert = require('chai').assert;
 const main = require('../calculate_risk')
 const bluebird = require('bluebird');
 const fs = require('fs');
-let calculateRisk, model_1;
+let test_population, test_mosquito;
 
 const date = '2017-04-24'
 
@@ -62,6 +62,7 @@ describe('testing data fetching', function() {
         expect(country_pop.sum).to.equal(expected_data.population[country].sum);
         expect(country_pop.sq_km).to.equal(expected_data.population[country].sq_km);
       });
+      test_population = population
     });
     done();
   })
@@ -75,6 +76,7 @@ describe('testing data fetching', function() {
         expect(country_pop.sum).to.equal(expected_data.mosquito.aegypti[country].sum);
         expect(country_pop.sq_km).to.equal(expected_data.mosquito.aegypti[country].sq_km);
       });
+      test_mosquito = mosquito
     });
     done();
   })
@@ -111,9 +113,8 @@ describe('testing data fetching', function() {
 
 describe('testing models', () => {
 
-
   it('testing all models for zika', (done) => {
-    main.getRisk(date, 'zika', testPaths)
+    main.getRisk(date, 'zika', test_population, test_mosquito, testPaths)
     .then(model => {
 
       var expected_model = expectedModel()

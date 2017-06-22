@@ -3,6 +3,7 @@ const getConfig = require('./lib/config_helper').getConfig;
 const fs = require('fs');
 var ArgumentParser = require('argparse').ArgumentParser;
 var bluebird = require('bluebird')
+const async = require('async');
 
 var parser = new ArgumentParser({
   version: '0.0.1',
@@ -47,11 +48,36 @@ const getWeeks = () => {
 // get weeks common to cases and traffic
 let weeks = getWeeks()
 
-// for each week calculate risk and write it to file at output_path/disease/date.json
-bluebird.each(weeks, date => {
-  main.getRisk(date, disease)
-  .then((risk) => {
-    console.log(`writting ${date}.json`);
-    fs.writeFileSync(`${getConfig('output_path')}/${disease}/${date}.json`, JSON.stringify(risk[date]));
-  });
-}, {concurency: 1})
+// objects to store population and mosquito prevelence as it is static and won't change everyweek
+let population = {}
+let mosquito = {}
+
+async.waterfall([
+  // get population and fill in population object
+  (callback) => {
+    main.getPopulationByKey(getConfig('population', 'path'))
+    .then(content => {
+      Object.assign(population, content)
+      callback(null)
+    })
+  },
+  // get mosquito prevelence and fill in mosquito object
+  (callback) => {
+    main.getMosquito(getConfig('aegypti', 'path'))
+    .then(content => {
+      Object.assign(mosquito, content)
+      callback(null)
+    })
+  },
+  // calculate risk for every week
+  (callback) => {
+    bluebird.each(weeks, date => {
+      main.getRisk(date, disease, population, mosquito)
+      .then((risk) => {
+        // write it in a file at output_path/disease/date.json
+        console.log(`writting ${date}.json`);
+        fs.writeFileSync(`${getConfig('output_path')}/${disease}/${date}.json`, JSON.stringify(risk[date]));
+      });
+    }, {concurency: 1})
+  }
+])
