@@ -5,6 +5,8 @@ const bluebird = require('bluebird');
 const fs = require('fs');
 let calculateRisk, model_1;
 
+const date = '2017-04-24'
+
 // path of folders holding test data
 const testPaths = {
   cases: {
@@ -54,9 +56,9 @@ describe('testing data fetching', function() {
 
   it ('testing getPopulationByKey', (done) => {
     main.getPopulationByKey(testPaths.population)
-    .then(() => {
+    .then(population => {
       Object.keys(expected_data.population).forEach(country => {
-        var country_pop = main.population[country];
+        var country_pop = population[country];
         expect(country_pop.sum).to.equal(expected_data.population[country].sum);
         expect(country_pop.sq_km).to.equal(expected_data.population[country].sq_km);
       });
@@ -67,9 +69,9 @@ describe('testing data fetching', function() {
 
   it ('testing getMosquito', (done) => {
     main.getMosquito(testPaths.aegypti)
-    .then(() => {
+    .then(mosquito => {
       Object.keys(expected_data.mosquito.aegypti).forEach(country => {
-        var country_pop = main.mosquito.aegypti[country];
+        var country_pop = mosquito.aegypti[country];
         expect(country_pop.sum).to.equal(expected_data.mosquito.aegypti[country].sum);
         expect(country_pop.sq_km).to.equal(expected_data.mosquito.aegypti[country].sq_km);
       });
@@ -79,10 +81,11 @@ describe('testing data fetching', function() {
 
 
   it ('testing getCases', (done) => {
-    main.getCases('zika', testPaths.cases.zika.path)
-    .then(() => {
+    main.getCases('zika', testPaths.cases.zika.path, `${date}.json`)
+    .then(cases => {
+
       Object.keys(expected_data.cases.zika).forEach(country => {
-        var country_pop = main.cases['2017-04-24'][country];
+        var country_pop = cases[date][country];
         expect(country_pop.new_cases_this_week).to.equal(expected_data.cases.zika[country].new_cases_this_week);
         expect(country_pop.iso_week).to.equal(expected_data.cases.zika[country].iso_week);
         expect(country_pop.cases_cumulative).to.equal(expected_data.cases.zika[country].cases_cumulative);
@@ -92,10 +95,10 @@ describe('testing data fetching', function() {
   })
 
   it ('testing getTravelData', (done) => {
-    main.getTravelData(testPaths.travel)
-    .then(() => {
+    main.getTravelData(testPaths.travel, `${date}.csv`)
+    .then(traffic => {
       Object.keys(expected_data.travels).forEach(country => {
-        var country_pop = main.traffic['2017-04-24'][country];
+        var country_pop = traffic['2017-04-24'][country];
         expect(parseInt(country_pop.bra)).to.equal(expected_data.travels[country].bra);
         expect(parseInt(country_pop.ecu)).to.equal(expected_data.travels[country].ecu);
         expect(parseInt(country_pop.pri)).to.equal(expected_data.travels[country].pri);
@@ -110,10 +113,11 @@ describe('testing models', () => {
 
 
   it('testing all models for zika', (done) => {
-    main.getRisk('zika', testPaths)
+    main.getRisk(date, 'zika', testPaths)
     .then(model => {
+
       var expected_model = expectedModel()
-      var result = model['2017-04-24']
+      var result = model[date]
 
       expect(result.mex.model_1.score_new).to.equal(expected_model.model_1.score_new);
       expect(result.mex.model_1.score_cummulative).to.equal(expected_model.model_1.score_cummulative);

@@ -1,4 +1,3 @@
-// let config = require('./config');
 const getConfig = require('./lib/config_helper').getConfig;
 const bluebird = require('bluebird');
 const async = require('async');
@@ -8,12 +7,6 @@ const jsonfile = bluebird.promisify(require('jsonfile').readFile);
 const csv = require('csvtojson');
 const country_codes = require('./country_codes');
 
-// objects to store data
-let population = {};
-let mosquito = {aegypti:{}};
-let traffic = {};
-let cases = {};
-
 /**
  * This function will fetch all the data required to calculate risk of an epidemic
  * and will calculate risk using callback function. If callback is not specified it uses calculateRisk
@@ -21,53 +14,55 @@ let cases = {};
  * @param  {Object}   in_path  input paths for all data elements
  * @param  {Function} callback callback function to calculate risk
  */
-let getRisk = (disease, in_path) => {
-
+let getRisk = (date, disease, in_path) => {
   return new Promise((resolve, reject) => {
     async.waterfall([
       // get population and fill in population object
       (callback) => {
         let path = in_path ? in_path.population : getConfig('population', 'path')
         getPopulationByKey(path)
-        .then(() => {
-          callback();
+        .then(population => {
+          callback(null, population)
         })
         .catch(error => {
           console.log('Error!!', error);
+          callback(error)
         });
       },
       // get mosquito prevelence and fill in mosquito object
-      (callback) => {
+      (population, callback) => {
         let path = in_path ? in_path.aegypti : getConfig('aegypti', 'path')
         getMosquito(path)
-        .then(() => {
-          callback();
+        .then(mosquito => {
+          callback(null, population, mosquito);
         });
       },
       // get cases of disease specified and fill in cases object
-      (callback) => {
+      (population, mosquito, callback) => {
         let path = in_path ? in_path.cases.zika.path : getConfig('cases', 'zika').path
-        getCases(disease, path)
-        .then(() => {
-          callback()
+        getCases(disease, path, `${date}.json`)
+        .then(cases => {
+          callback(null, population, mosquito, cases)
         });
       },
       // get travel data and fill in traffic object
-      (callback) => {
+      (population, mosquito, cases, callback) => {
         let path = in_path ? in_path.travel : getConfig('travel', 'path')
-        getTravelData(path)
-        .then(() => {
-          callback(null, disease)
+        getTravelData(path, `${date}.csv`)
+        .then(traffic => {
+          callback(null, population, mosquito, cases, traffic)
         });
       }
-    ], (error, disease) => {
-      let model_1 = calculateRiskByModel1();
-      let model_2 = calculateRiskByModel2(model_1);
-      let model_3 = calculateRiskByModel3(model_1);
-      return resolve(model_3, disease);
+    ], (error, population, mosquito, cases, traffic) => {
+      let model_1 = calculateRiskByModel1(population, mosquito, cases, traffic);
+      let model_2 = calculateRiskByModel2(model_1, population);
+      let model_3 = calculateRiskByModel3(model_1, population);
+
+      return resolve(model_3);
     })
   });
 }
+
 
 
 /**
@@ -79,8 +74,7 @@ let getPopulationByKey = (path) => {
   return new Promise((resolve, reject) => {
     population_aggregator.getPopulationByKey('population', path)
     .then(content => {
-      Object.assign(population, content);
-      return resolve();
+      return resolve(content);
     })
     .catch(error => {
       console.log('Error!', error);
@@ -97,8 +91,7 @@ let getMosquito = (path) => {
   return new Promise((resolve, reject) => {
     population_aggregator.getPopulationByKey('aegypti', path)
     .then(content => {
-      Object.assign(mosquito.aegypti, content);
-      return resolve();
+      return resolve({aegypti: content});
     })
     .catch(error => {
       console.log('Error!', error);
@@ -111,23 +104,16 @@ let getMosquito = (path) => {
  * @param  {String} path path of input folder
  * @return {Promise} Fulfilled when records are returned
  */
-let getTravelData = (path) => {
+let getTravelData = (path, fileName) => {
   return new Promise((resolve, reject) => {
     if (path === undefined) {
       path = getConfig('travel', 'path')
     }
-    // var path = path || getConfig('travel', 'path')
-    fs.readdirAsync(path)
-    .then(fileList => {
-      let files = fileList.entries.files;
-      bluebird.each(fileList, file => {
-        let fileName = file;
-        let date = fileName.split('.')[0];
-        traffic[date] = {};
-        return aggregateTravels(fileName, date, path);
-      }, {concurency:1})
-      .then(resolve);
-    })
+    let date = fileName.split('.')[0];
+    var traffic = {}
+    traffic[date] = {};
+    aggregateTravels(fileName, date, path)
+    .then(resolve)
     .catch(error => {
       console.log('Error in fetching travel data', error);
       return reject(error);
@@ -148,7 +134,8 @@ let aggregateTravels = (fileName, date, path) => {
     if (path === undefined) {
       path = getConfig('travel', 'path')
     }
-    // var path = path || getConfig('travel', 'path')
+    var traffic = {}
+    traffic[date] = {}
     fs.readFileAsync(path + fileName, 'utf8')
     .then(content => {
       csv({flatKeys:true})
@@ -167,7 +154,7 @@ let aggregateTravels = (fileName, date, path) => {
           }
         }
       })
-      .on('done', resolve);
+      .on('done', () => {return resolve(traffic)});
     });
   });
 }
@@ -178,22 +165,18 @@ let aggregateTravels = (fileName, date, path) => {
  * @param  {String} path     path of input folder
  * @return {Promise} Fulfilled when records are returned
  */
-let getCases = (disease, path) => {
+let getCases = (disease, path, file) => {
   return new Promise((resolve, reject) => {
     if (path === undefined) {
       path = getConfig('cases', disease).path
     }
-    // var path = path || getConfig('cases', disease).path
-    fs.readdirAsync(path)
-    .then(files => {
-      bluebird.each(files, file => {
-         return readCaseFile(disease, file, path);
-      }, {concurency : 1})
-      .then(resolve)
+    readCaseFile(disease, file, path)
+    .then(content => {
+      return resolve(content)
     })
     .catch(error => {
       console.log('Error!', error);
-      reject(error);
+      return reject(error);
     })
   });
 }
@@ -208,14 +191,15 @@ let getCases = (disease, path) => {
 let readCaseFile = (disease, file, path) => {
   return new Promise((resolve, reject) => {
     const date = file.split('.')[0];
-    cases[date] = {};
+    var cases = {}
+    cases[date] = {}
     if (path === undefined) {
       path = getConfig('cases', disease).path
     }
     jsonfile(path + file)
     .then(content => {
       Object.assign(cases[date], content.countries);
-      return resolve();
+      return resolve(cases);
     })
     .catch(error => {
       return reject(error);
@@ -227,7 +211,8 @@ let readCaseFile = (disease, file, path) => {
  * calculates risk of disease using first model specified in the document
  * @return {Object} risk using first model for each country
  */
-let calculateRiskByModel1 = () => {
+let calculateRiskByModel1 = (population, mosquito, cases, traffic) => {
+
   let score_json = '';
   let return_val = {};
   Object.keys(cases).forEach(case_date => {
@@ -270,7 +255,7 @@ let calculateRiskByModel1 = () => {
  * calculates risk of disease using second model specified in the document
  * @return {Object} risk using second model for each country
  */
-let calculateRiskByModel2 = (model_1) => {
+let calculateRiskByModel2 = (model_1, population) => {
   Object.keys(model_1).forEach(case_date => {
     Object.keys(model_1[case_date]).forEach(country => {
       if (population[country] !== undefined) {
@@ -287,7 +272,7 @@ let calculateRiskByModel2 = (model_1) => {
  * calculates risk of disease using third model specified in the document
  * @return {Object} risk using third model for each country
  */
-let calculateRiskByModel3 = (model_1) => {
+let calculateRiskByModel3 = (model_1, population) => {
   Object.keys(model_1).forEach(case_date => {
     Object.keys(model_1[case_date]).forEach(country => {
       if (population[country] !== undefined) {
@@ -300,10 +285,6 @@ let calculateRiskByModel3 = (model_1) => {
 }
 
 module.exports = {
-  mosquito,
-  population,
-  cases,
-  traffic,
   getPopulationByKey,
   getMosquito,
   getTravelData,
