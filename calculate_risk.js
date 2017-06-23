@@ -256,8 +256,8 @@ let calculateRiskByModel3 = (model_1, population) => {
   Object.keys(model_1).forEach(case_date => {
     Object.keys(model_1[case_date]).forEach(country => {
       if (population[country] !== undefined) {
-        model_1[case_date][country].model_3.score_new  = model_1[case_date][country].model_1.score_new * population[country][0].sum * population[country][0].sq_km;
-        model_1[case_date][country].model_3.score_cummulative = model_1[case_date][country].model_1.score_cummulative * population[country][0].sum * population[country][0].sq_km;
+        model_1[case_date][country].model_3.score_new  = model_1[case_date][country].model_1.score_new * population[country][0].density;
+        model_1[case_date][country].model_3.score_cummulative = model_1[case_date][country].model_1.score_cummulative * population[country][0].density;
       }
     })
   })

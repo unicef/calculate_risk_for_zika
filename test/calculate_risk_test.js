@@ -159,8 +159,8 @@ function expectedModel() {
   model.model_2.score_cummulative = model.model_1.score_cummulative / expected_data.population.mex[0].sum
 
   // calculating model 3
-  model.model_3.score_new = model.model_1.score_new * expected_data.population.mex[0].sum * expected_data.population.mex[0].sq_km
-  model.model_3.score_cummulative = model.model_1.score_cummulative * expected_data.population.mex[0].sum * expected_data.population.mex[0].sq_km
+  model.model_3.score_new = model.model_1.score_new * (expected_data.population.mex[0].sum / expected_data.population.mex[0].sq_km)
+  model.model_3.score_cummulative = model.model_1.score_cummulative * (expected_data.population.mex[0].sum / expected_data.population.mex[0].sq_km)
 
   return model;
 }
