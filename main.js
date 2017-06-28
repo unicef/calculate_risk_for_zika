@@ -65,6 +65,7 @@ async.waterfall([
   //     callback(null)
   //   })
   // },
+  // get population from world-bank, currently it's fetched from the file POP.csv
   (callback) => {
     let tempPopulation = {}
     readFile('./POP.csv', 'utf8')
@@ -84,6 +85,8 @@ async.waterfall([
       })
     })
   },
+  // get area of each country. Area is fetched from directory ../shapefiles. In this we have separate directory for each country which holds csv and shp files for all admin levels.
+  // For area we use admin level 0 files.
   (callback) => {
     readDir(getConfig('shape_files'))
     .then(countries => {
