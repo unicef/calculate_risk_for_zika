@@ -97,6 +97,7 @@ async.waterfall([
             if (key in population) {
               let area = parseInt(json.SQKM)
               population[key][0].sq_km = area
+              population[key][0].density = population[key][0].sum / area
             }
           })
           .on('done',()=>{
