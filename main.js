@@ -100,9 +100,12 @@ async.waterfall([
             }
           })
           .on('done',()=>{
-            callback(null)
+            console.log('done', country);
           })
         })
+      })
+      .then(() => {
+        callback(null)
       })
     })
   },
