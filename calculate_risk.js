@@ -238,7 +238,10 @@ let calculateRiskByModel1 = (population, mosquito, cases, traffic) => {
 let calculateRiskByModel2 = (model_1, population) => {
   Object.keys(model_1).forEach(case_date => {
     Object.keys(model_1[case_date]).forEach(country => {
-      if (population[country] !== undefined) {
+      if (population[country] === undefined) {
+        model_1[case_date][country].model_2.score_new = 0
+        model_1[case_date][country].model_2.score_cummulative = 0
+      } else {
         model_1[case_date][country].model_2.score_new  = model_1[case_date][country].model_1.score_new / population[country][0].sum
         model_1[case_date][country].model_2.score_cummulative = model_1[case_date][country].model_1.score_cummulative / population[country][0].sum
       }
@@ -255,7 +258,10 @@ let calculateRiskByModel2 = (model_1, population) => {
 let calculateRiskByModel3 = (model_1, population) => {
   Object.keys(model_1).forEach(case_date => {
     Object.keys(model_1[case_date]).forEach(country => {
-      if (population[country] !== undefined) {
+      if (population[country] === undefined) {
+        model_1[case_date][country].model_3.score_new = 0
+        model_1[case_date][country].model_3.score_cummulative = 0
+      } else {
         model_1[case_date][country].model_3.score_new  = model_1[case_date][country].model_1.score_new * population[country][0].density;
         model_1[case_date][country].model_3.score_cummulative = model_1[case_date][country].model_1.score_cummulative * population[country][0].density;
       }
