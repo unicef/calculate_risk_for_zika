@@ -27,6 +27,7 @@
   },
   "devDependencies": {
     "chai": "^4.0.2",
+    "csvtojson": "^1.1.7",
     "eslint": "^3.19.0",
     "eslint-config-google": "^0.7.1",
     "eslint-config-xo": "^0.11.0",
