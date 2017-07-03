@@ -268,7 +268,7 @@ let calculateRiskByModel3 = (model_1, population) => {
     Object.keys(model_1[case_date]).forEach(country => {
       if (population[country] === undefined ||
           model_1[case_date][country].model_1.score_new === 'NA' ||
-          population[country][0].density === undefined
+          isNaN(population[country][0].density)
         ) {
         // model_1[case_date][country].model_3.score_new = 0
         // model_1[case_date][country].model_3.score_cummulative = 0
