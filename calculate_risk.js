@@ -266,15 +266,15 @@ let calculateRiskByModel2 = (model_1, population) => {
 let calculateRiskByModel3 = (model_1, population) => {
   Object.keys(model_1).forEach(case_date => {
     Object.keys(model_1[case_date]).forEach(country => {
-      if (population[country] === undefined || model_1[case_date][country].model_1.score_new === 'NA') {
+      if (population[country] === undefined ||
+          model_1[case_date][country].model_1.score_new === 'NA' ||
+          population[country][0].density === undefined
+        ) {
         // model_1[case_date][country].model_3.score_new = 0
         // model_1[case_date][country].model_3.score_cummulative = 0
         model_1[case_date][country].model_3.score_new = 'NA'
         model_1[case_date][country].model_3.score_cummulative = 'NA'
       } else {
-        if (population[country][0].density === null || population[country][0].density === undefined) {
-          console.log('no density', country);
-        }
         model_1[case_date][country].model_3.score_new  = model_1[case_date][country].model_1.score_new * population[country][0].density;
         model_1[case_date][country].model_3.score_cummulative = model_1[case_date][country].model_1.score_cummulative * population[country][0].density;
       }
