@@ -15,7 +15,7 @@ const country_codes = require('./country_codes');
  * @param  {Function} callback callback function to calculate risk
  */
 // let getRisk = (date, disease, in_path) => {
-  let getRisk = (date, disease, population, mosquito, in_path) => {
+  let getRisk = (date, disease, population, mosquito, countriesList, in_path) => {
   return new Promise((resolve, reject) => {
     async.waterfall([
       // get cases of disease specified
@@ -31,11 +31,11 @@ const country_codes = require('./country_codes');
         let path = in_path ? in_path.travel : getConfig('travel', 'path')
         getTravelData(path, `${date}.csv`)
         .then(traffic => {
-          callback(null, population, mosquito, cases, traffic)
+          callback(null, population, mosquito, cases, traffic, countriesList)
         });
       }
-    ], (error, population, mosquito, cases, traffic) => {
-      let model_1 = calculateRiskByModel1(population, mosquito, cases, traffic);
+    ], (error, population, mosquito, cases, traffic, countriesList) => {
+      let model_1 = calculateRiskByModel1(population, mosquito, cases, traffic, countriesList);
       let model_2 = calculateRiskByModel2(model_1, population);
       let model_3 = calculateRiskByModel3(model_1, population);
 
@@ -191,7 +191,7 @@ let readCaseFile = (disease, file, path) => {
  * calculates risk of disease using first model specified in the document
  * @return {Object} risk using first model for each country
  */
-let calculateRiskByModel1 = (population, mosquito, cases, traffic) => {
+let calculateRiskByModel1 = (population, mosquito, cases, traffic, countriesList) => {
 
   let score_json = '';
   let return_val = {};
@@ -200,23 +200,29 @@ let calculateRiskByModel1 = (population, mosquito, cases, traffic) => {
       let curr_cases = cases[case_date];
       let travellers = traffic[case_date];
       let zika_risk = {};
-      Object.keys(travellers).forEach(country => {
+      countriesList.forEach(country => {
         let score_new_cases = 0;
         let score_cumm_cases = 0;
-        Object.keys(travellers[country]).forEach(orig => {
-          if (orig in curr_cases && orig in population && orig in mosquito.aegypti && orig !== country) {
-            let new_cases_in_j = curr_cases[orig].new_cases_this_week;
-            let cumm_cases_in_j = curr_cases[orig].cases_cumulative;
-            let population_of_j = population[orig][0].sum;
-            let travellers_count = travellers[country][orig];
-            score_new_cases += (new_cases_in_j / population_of_j) * travellers_count;
-            score_cumm_cases += (cumm_cases_in_j / population_of_j) * travellers_count;
-          }
-        });
-        score_new_cases *= mosquito.aegypti[country][0].sum;
-        score_cumm_cases *= mosquito.aegypti[country][0].sum;
         zika_risk[country] = {model_1: {}, model_2: {}, model_3: {}}
-        Object.assign(zika_risk[country].model_1, {score_new: score_new_cases, score_cummulative: score_cumm_cases});
+        if (country in travellers) {
+          Object.keys(travellers[country]).forEach(orig => {
+            // && orig in mosquito.aegypti
+            if (orig in curr_cases && orig in population && orig !== country) {
+              let new_cases_in_j = curr_cases[orig].new_cases_this_week;
+              let cumm_cases_in_j = curr_cases[orig].cases_cumulative;
+              let population_of_j = population[orig][0].sum;
+              let travellers_count = travellers[country][orig];
+              score_new_cases += (new_cases_in_j / population_of_j) * travellers_count;
+              score_cumm_cases += (cumm_cases_in_j / population_of_j) * travellers_count;
+            }
+          });
+          score_new_cases *= mosquito.aegypti[country][0].sum;
+          score_cumm_cases *= mosquito.aegypti[country][0].sum;
+          Object.assign(zika_risk[country].model_1, {score_new: score_new_cases, score_cummulative: score_cumm_cases});
+        } else {
+          zika_risk[country].model_1.score_new = 'NA'
+          zika_risk[country].model_1.score_cummulative = 'NA'
+        }
       });
       score_json = JSON.stringify(zika_risk);
       if (score_json === undefined || score_json === null) {
@@ -238,9 +244,11 @@ let calculateRiskByModel1 = (population, mosquito, cases, traffic) => {
 let calculateRiskByModel2 = (model_1, population) => {
   Object.keys(model_1).forEach(case_date => {
     Object.keys(model_1[case_date]).forEach(country => {
-      if (population[country] === undefined) {
-        model_1[case_date][country].model_2.score_new = 0
-        model_1[case_date][country].model_2.score_cummulative = 0
+      if (population[country] === undefined || model_1[case_date][country].model_1.score_new === 'NA') {
+        // model_1[case_date][country].model_2.score_new = 0
+        // model_1[case_date][country].model_2.score_cummulative = 0
+        model_1[case_date][country].model_2.score_new = 'NA'
+        model_1[case_date][country].model_2.score_cummulative = 'NA'
       } else {
         model_1[case_date][country].model_2.score_new  = model_1[case_date][country].model_1.score_new / population[country][0].sum
         model_1[case_date][country].model_2.score_cummulative = model_1[case_date][country].model_1.score_cummulative / population[country][0].sum
@@ -258,10 +266,15 @@ let calculateRiskByModel2 = (model_1, population) => {
 let calculateRiskByModel3 = (model_1, population) => {
   Object.keys(model_1).forEach(case_date => {
     Object.keys(model_1[case_date]).forEach(country => {
-      if (population[country] === undefined) {
-        model_1[case_date][country].model_3.score_new = 0
-        model_1[case_date][country].model_3.score_cummulative = 0
+      if (population[country] === undefined || model_1[case_date][country].model_1.score_new === 'NA') {
+        // model_1[case_date][country].model_3.score_new = 0
+        // model_1[case_date][country].model_3.score_cummulative = 0
+        model_1[case_date][country].model_3.score_new = 'NA'
+        model_1[case_date][country].model_3.score_cummulative = 'NA'
       } else {
+        if (population[country][0].density === null || population[country][0].density === undefined) {
+          console.log('no density', country);
+        }
         model_1[case_date][country].model_3.score_new  = model_1[case_date][country].model_1.score_new * population[country][0].density;
         model_1[case_date][country].model_3.score_cummulative = model_1[case_date][country].model_1.score_cummulative * population[country][0].density;
       }

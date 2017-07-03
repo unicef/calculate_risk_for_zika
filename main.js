@@ -8,6 +8,7 @@ var csvtojson = require('csvtojson')
 var readFile = bluebird.promisify(fs.readFile)
 var readDir = bluebird.promisify(fs.readdirAsync)
 const jsonfile = bluebird.promisify(require('jsonfile').readFile);
+const country_codes = require('./country_codes')
 
 var parser = new ArgumentParser({
   version: '0.0.1',
@@ -55,16 +56,17 @@ let weeks = getWeeks()
 // objects to store population and mosquito prevelence as it is static and won't change everyweek
 let population = {}
 let mosquito = {}
+let countriesList = []
 
 async.waterfall([
   // get population and fill in population object
-  // (callback) => {
-  //   main.getPopulationByKey(getConfig('population', 'path'))
-  //   .then(content => {
-  //     Object.assign(population, content)
-  //     callback(null)
-  //   })
-  // },
+  (callback) => {
+    countriesList = Object.keys(country_codes).reduce((list, code) => {
+      list.push(country_codes[code].toLowerCase())
+      return list
+    }, [])
+    callback()
+  },
   // get population from world-bank, currently it's fetched from the file POP.csv
   (callback) => {
     let tempPopulation = {}
@@ -104,7 +106,7 @@ async.waterfall([
             }
           })
           .on('done',()=>{
-            console.log('done', country);
+            // console.log('done', country);
           })
         })
       })
@@ -115,7 +117,6 @@ async.waterfall([
   },
   // get mosquito prevelence and fill in mosquito object
   (callback) => {
-    console.log(population);
     main.getMosquito(getConfig('aegypti', 'path'))
     .then(content => {
       Object.assign(mosquito, content)
@@ -125,7 +126,7 @@ async.waterfall([
   // calculate risk for every week
   (callback) => {
     bluebird.each(weeks, date => {
-      main.getRisk(date, disease, population, mosquito)
+      main.getRisk(date, disease, population, mosquito, countriesList)
       .then((risk) => {
         // write it in a file at output_path/disease/date.json
         console.log(`writting ${date}.json`);
