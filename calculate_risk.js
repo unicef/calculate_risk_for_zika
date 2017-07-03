@@ -220,6 +220,7 @@ let calculateRiskByModel1 = (population, mosquito, cases, traffic, countriesList
           score_cumm_cases *= mosquito.aegypti[country][0].sum;
           Object.assign(zika_risk[country].model_1, {score_new: score_new_cases, score_cummulative: score_cumm_cases});
         } else {
+          console.log('travel:', country);
           zika_risk[country].model_1.score_new = 'NA'
           zika_risk[country].model_1.score_cummulative = 'NA'
         }
@@ -247,6 +248,9 @@ let calculateRiskByModel2 = (model_1, population) => {
       if (population[country] === undefined || model_1[case_date][country].model_1.score_new === 'NA') {
         // model_1[case_date][country].model_2.score_new = 0
         // model_1[case_date][country].model_2.score_cummulative = 0
+        if (population[country] === undefined) {
+          console.log('population:', country);
+        }
         model_1[case_date][country].model_2.score_new = 'NA'
         model_1[case_date][country].model_2.score_cummulative = 'NA'
       } else {
@@ -268,15 +272,21 @@ let calculateRiskByModel3 = (model_1, population) => {
     Object.keys(model_1[case_date]).forEach(country => {
       if (population[country] === undefined ||
           model_1[case_date][country].model_1.score_new === 'NA' ||
-          isNaN(population[country][0].density)
         ) {
         // model_1[case_date][country].model_3.score_new = 0
         // model_1[case_date][country].model_3.score_cummulative = 0
+        if (population[country] === undefined) {
+          console.log('population:', country);
+        }
         model_1[case_date][country].model_3.score_new = 'NA'
         model_1[case_date][country].model_3.score_cummulative = 'NA'
       } else {
-        model_1[case_date][country].model_3.score_new  = model_1[case_date][country].model_1.score_new * population[country][0].density;
-        model_1[case_date][country].model_3.score_cummulative = model_1[case_date][country].model_1.score_cummulative * population[country][0].density;
+        if (isNaN(population[country][0].density)) {
+          console.log('area', country);
+        } else {
+          model_1[case_date][country].model_3.score_new  = model_1[case_date][country].model_1.score_new * population[country][0].density;
+          model_1[case_date][country].model_3.score_cummulative = model_1[case_date][country].model_1.score_cummulative * population[country][0].density;
+        }
       }
     })
   })
