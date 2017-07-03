@@ -128,6 +128,18 @@ async.waterfall([
     bluebird.each(weeks, date => {
       main.getRisk(date, disease, population, mosquito, countriesList)
       .then((risk) => {
+
+        let cons = countriesList.reduce((list, con) => {
+          if !(con in risk[date]) {
+            list.push(con)
+          } else {
+            list.push('')
+          }
+          return list
+        }, [])
+
+        console.log(date, cons);
+
         // write it in a file at output_path/disease/date.json
         console.log(`writting ${date}.json`);
         fs.writeFileSync(`${getConfig('output_path')}/${disease}-worldbank/${date}.json`, JSON.stringify(risk[date]));
