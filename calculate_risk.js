@@ -38,8 +38,10 @@ const country_codes = require('./country_codes');
       let model_1 = calculateRiskByModel1(population, mosquito, cases, traffic, countriesList);
       let model_2 = calculateRiskByModel2(model_1, population);
       let model_3 = calculateRiskByModel3(model_1, population);
+      let model_4 = calculateRiskByModel3(model_1, mosquito, cases);
 
-      return resolve(model_3);
+      // always resolve last model calculated
+      return resolve(model_4);
     })
   });
 }
@@ -283,6 +285,26 @@ let calculateRiskByModel3 = (model_1, population) => {
   })
   return model_1;
 }
+
+let calculateRiskByModel4 = (model_1, mosquito, cases) => {
+  Object.keys(model_1).forEach(case_date => {
+    Object.keys(model_1[case_date]).forEach(country => {
+      if (model_1[case_date][country].model_1.score_new === 'NA' &&
+        cases[case_date][country] === undefined &&
+      mmosquito.aegypti[country] === undefined) {
+        model_1[case_date][country].model_4 = {}
+        model_1[case_date][country].model_4.score_new = 'NA'
+        model_1[case_date][country].model_4.score_cummulative = 'NA'
+      } else {
+        model_1[case_date][country].model_4 = {}
+        model_1[case_date][country].model_4.score_new = mosquito.aegypti[country][0].sum * cases[case_date][country].new_cases_this_week
+        model_1[case_date][country].model_4.score_new = mosquito.aegypti[country][0].sum * cases[case_date][country].cases_cumulative
+      }
+    })
+  })
+  return model_1
+}
+
 
 module.exports = {
   getPopulationByKey,
