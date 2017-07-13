@@ -318,8 +318,8 @@ let calculateRiskByModel4 = (model_1, mosquito, cases) => {
         model_1[case_date][country].model_4.score_new = 'NA'
         model_1[case_date][country].model_4.score_cummulative = 'NA'
       } else {
-        model_1[case_date][country].model_4.score_new = model_1[case_date][country].model_1.score_new * mosquito.aegypti[country][0].sum * cases[case_date][country].new_cases_this_week
-        model_1[case_date][country].model_4.score_cummulative = model_1[case_date][country].model_1.score_cummulative * mosquito.aegypti[country][0].sum * cases[case_date][country].cases_cumulative
+        model_1[case_date][country].model_4.score_new = model_1[case_date][country].model_1.score_new + mosquito.aegypti[country][0].sum * cases[case_date][country].new_cases_this_week
+        model_1[case_date][country].model_4.score_cummulative = model_1[case_date][country].model_1.score_cummulative + mosquito.aegypti[country][0].sum * cases[case_date][country].cases_cumulative
       }
     })
   })
