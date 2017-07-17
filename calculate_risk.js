@@ -35,13 +35,15 @@ const country_codes = require('./country_codes');
         });
       }
     ], (error, population, mosquito, cases, traffic, countriesList) => {
-      let model_1 = calculateRiskByModel1(population, mosquito, cases, traffic, countriesList);
-      let model_2 = calculateRiskByModel2(model_1, population);
-      let model_3 = calculateRiskByModel3(model_1, population);
-      let model_4 = calculateRiskByModel4(model_1, mosquito, cases);
+
+      let model_0 = calculateRiskByModel0(population, cases, traffic, countriesList)
+      let model_1 = calculateRiskByModel1(model_0, mosquito);
+      calculateRiskByModel2(model_1, population);
+      calculateRiskByModel3(model_1, population);
+      let final_model = calculateRiskByModel4(model_1, mosquito, cases);
 
       // always resolve last model calculated
-      return resolve(model_4);
+      return resolve(final_model);
     })
   });
 }
@@ -204,24 +206,29 @@ let getImportedCases = (country, population, curr_cases, traffic) => {
   let new_cases = 0, cumm_cases = 0
   Object.keys(traffic).forEach(orig => {
     if (orig in curr_cases && orig in population && orig !== country) {
-      let new_cases_in_j = curr_cases[orig].new_cases_this_week;
-      let cumm_cases_in_j = curr_cases[orig].cases_cumulative;
+      let new_cases_in_orig = curr_cases[orig].new_cases_this_week
+      let total_new_cases = new_cases_in_orig.autochthonous_cases_confirmed + new_cases_in_orig.imported_cases;
+
+      let cumm_cases_in_orig = curr_cases[orig].cumulative;
+      let total_cumm_cases = cumm_cases_in_orig.autochthonous_cases_confirmed + cumm_cases_in_orig.imported_cases;
+
       let population_of_j = population[orig][0].sum;
       let travellers_count = traffic[orig];
-      new_cases += (new_cases_in_j / population_of_j) * travellers_count;
-      cumm_cases += (cumm_cases_in_j / population_of_j) * travellers_count;
+
+      new_cases += (total_new_cases / population_of_j) * travellers_count;
+      cumm_cases += (total_cumm_cases / population_of_j) * travellers_count;
     }
   })
 
   return { new_cases, cumm_cases }
 }
 
-
 /**
- * calculates risk of disease using first model specified in the document
- * @return {Object} risk using first model for each country
+ * calculates risk of disease using model zero specified in the document
+ * @return {Object} risk using model zero for each country
  */
-let calculateRiskByModel1 = (population, mosquito, cases, traffic, countriesList) => {
+
+const calculateRiskByModel0 = (population, cases, traffic, countriesList) => {
 
   let return_val = {};
   Object.keys(cases).forEach(case_date => {
@@ -231,24 +238,43 @@ let calculateRiskByModel1 = (population, mosquito, cases, traffic, countriesList
       let zika_risk = {};
       countriesList.forEach(country => {
         zika_risk[country] = {}
-        zika_risk[country].model_1 = {}
+        zika_risk[country].model_0 = {}
+
         if (country in travellers) {
-          importedCases = getImportedCases(country, population, curr_cases, travellers[country])
-
-          zika_risk[country].model_1.score_new = importedCases.new_cases * mosquito.aegypti[country][0].sum;
-
-          zika_risk[country].model_1.score_cummulative = importedCases.cumm_cases * mosquito.aegypti[country][0].sum;
+        importedCases = getImportedCases(country, population, curr_cases, travellers[country])
+        zika_risk[country].model_0.score_new = importedCases.new_cases
+        zika_risk[country].model_0.score_cummulative = importedCases.cumm_cases
         } else {
-          zika_risk[country].model_1.score_new = 'NA'
-          zika_risk[country].model_1.score_cummulative = 'NA'
+          zika_risk[country].model_0.score_new = 'NA'
+          zika_risk[country].model_0.score_cummulative = 'NA'
         }
-      });
-
+      })
       return_val[case_date] = {};
       Object.assign(return_val[case_date], zika_risk);
     }
   })
-  return return_val;
+  return return_val
+}
+
+/**
+ * calculates risk of disease using first model specified in the document
+ * @return {Object} risk using first model for each country
+ */
+let calculateRiskByModel1 = (model_0, mosquito) => {
+  Object.keys(model_0).forEach(case_date => {
+    Object.keys(model_0[case_date]).forEach(country => {
+      model_0[case_date][country].model_1 = {}
+      let model_0_for_country = model_0[case_date][country].model_0
+      if (mosquito.aegypti[country] === undefined || model_0_for_country.score_new === 'NA') {
+        model_0[case_date][country].model_1.score_new = 'NA'
+        model_0[case_date][country].model_1.score_cummulative = 'NA'
+      } else {
+        model_0[case_date][country].model_1.score_new = model_0_for_country.score_new * mosquito.aegypti[country][0].sum
+        model_0[case_date][country].model_1.score_cummulative = model_0_for_country.score_cummulative * mosquito.aegypti[country][0].sum
+      }
+    })
+  })
+  return model_0
 }
 
 
@@ -318,8 +344,14 @@ let calculateRiskByModel4 = (model_1, mosquito, cases) => {
         model_1[case_date][country].model_4.score_new = 'NA'
         model_1[case_date][country].model_4.score_cummulative = 'NA'
       } else {
-        model_1[case_date][country].model_4.score_new = model_1[case_date][country].model_1.score_new + mosquito.aegypti[country][0].sum * cases[case_date][country].new_cases_this_week
-        model_1[case_date][country].model_4.score_cummulative = model_1[case_date][country].model_1.score_cummulative + mosquito.aegypti[country][0].sum * cases[case_date][country].cases_cumulative
+        let new_cases = cases[case_date][country].new_cases_this_week
+        let cumm_cases = cases[case_date][country].cumulative
+
+        let total_new_cases = new_cases.autochthonous_cases_confirmed + new_cases.imported_cases
+        let total_cumm_cases = cumm_cases.autochthonous_cases_confirmed + cumm_cases.imported_cases
+
+        model_1[case_date][country].model_4.score_new = model_1[case_date][country].model_1.score_new + mosquito.aegypti[country][0].sum * total_new_cases
+        model_1[case_date][country].model_4.score_cummulative = model_1[case_date][country].model_1.score_cummulative + mosquito.aegypti[country][0].sum * total_cumm_cases
       }
     })
   })
