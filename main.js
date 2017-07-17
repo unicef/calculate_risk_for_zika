@@ -70,21 +70,10 @@ async.waterfall([
   // get population from world-bank, currently it's fetched from the file POP.csv
   (callback) => {
     let tempPopulation = {}
-    readFile('./POP.csv', 'utf8')
+    readFile(getConfig('population', 'default_source') + 'population.json', 'utf8')
     .then(content => {
-      csvtojson({noheader:true})
-      .fromString(content)
-      .on('json',(json) => {
-        let country = json.field1.toLowerCase()
-        if (!(country in population)) {
-          let pop = parseInt(json.field5.replace(/,/g, '')) * 1000
-          tempPopulation[country] = [{ sum: pop }]
-        }
-      })
-      .on('done',()=>{
-        Object.assign(population, tempPopulation)
-        callback(null)
-      })
+      Object.assign(population, JSON.parse(content))
+      callback(null)
     })
   },
   // get area of each country. Area is fetched from directory ../shapefiles. In this we have separate directory for each country which holds csv and shp files for all admin levels.
@@ -101,8 +90,8 @@ async.waterfall([
             let key = json.ISO.toLowerCase()
             if (key in population) {
               let area = parseInt(json.SQKM)
-              population[key][0].sq_km = area
-              population[key][0].density = population[key][0].sum / area
+              population[key].sq_km = area
+              population[key].density = population[key].sum / area
             }
           })
           .on('done',()=>{

@@ -212,7 +212,7 @@ let getImportedCases = (country, population, curr_cases, traffic) => {
       let cumm_cases_in_orig = curr_cases[orig].cumulative;
       let total_cumm_cases = cumm_cases_in_orig.autochthonous_cases_confirmed + cumm_cases_in_orig.imported_cases;
 
-      let population_of_j = population[orig][0].sum;
+      let population_of_j = population[orig].sum;
       let travellers_count = traffic[orig];
 
       new_cases += (total_new_cases / population_of_j) * travellers_count;
@@ -292,8 +292,8 @@ let calculateRiskByModel2 = (model_1, population) => {
         model_1[case_date][country].model_2.score_new = 'NA'
         model_1[case_date][country].model_2.score_cummulative = 'NA'
       } else {
-        model_1[case_date][country].model_2.score_new  = model_1[case_date][country].model_1.score_new / population[country][0].sum
-        model_1[case_date][country].model_2.score_cummulative = model_1[case_date][country].model_1.score_cummulative / population[country][0].sum
+        model_1[case_date][country].model_2.score_new  = model_1[case_date][country].model_1.score_new / population[country].sum
+        model_1[case_date][country].model_2.score_cummulative = model_1[case_date][country].model_1.score_cummulative / population[country].sum
       }
     })
   })
@@ -317,9 +317,9 @@ let calculateRiskByModel3 = (model_1, population) => {
         model_1[case_date][country].model_3.score_new = 'NA'
         model_1[case_date][country].model_3.score_cummulative = 'NA'
       } else {
-        if (!(isNaN(population[country][0].density))) {
-          model_1[case_date][country].model_3.score_new  = model_1[case_date][country].model_1.score_new * population[country][0].density;
-          model_1[case_date][country].model_3.score_cummulative = model_1[case_date][country].model_1.score_cummulative * population[country][0].density;
+        if (!(isNaN(population[country].density))) {
+          model_1[case_date][country].model_3.score_new  = model_1[case_date][country].model_1.score_new * population[country].density;
+          model_1[case_date][country].model_3.score_cummulative = model_1[case_date][country].model_1.score_cummulative * population[country].density;
         } else {
           model_1[case_date][country].model_3.score_new = 'NA'
           model_1[case_date][country].model_3.score_cummulative = 'NA'
