@@ -54,16 +54,14 @@ const country_codes = require('./country_codes');
  * @param  {String} path path of input folder
  * @return {Promise} Fulfilled when records are returned
  */
-let getPopulationByKey = (path) => {
+let getPopulation = (path) => {
   return new Promise((resolve, reject) => {
-    population_aggregator.getPopulationByKey('population', path)
-    .then(content => {
-      return resolve(content);
-    })
-    .catch(error => {
-      console.log('Error!', error);
-    })
-  });
+    if (path === undefined) {
+      path = getConfig('population', 'default_source')
+    }
+    jsonfile(path + 'population.json')
+    .then(resolve)
+  })
 }
 
 /**
@@ -190,6 +188,59 @@ let readCaseFile = (disease, file, path) => {
     })
   });
 }
+
+
+/**
+ * This function will return area in square kilometers for all available countries
+ * @param  {String} path     path of input folder
+ * @return {Promise} Fulfilled when records are returned
+ */
+const getArea = (path) => {
+  return new Promise((resolve, reject) => {
+    if (path === undefined) {
+      path = getConfig('shape_files')
+    }
+    fs.readdirAsync(path)
+    .then(countries => {
+      bluebird.reduce(countries, (country_area, country) => {
+        return getAreaFromShapeFile(path, country)
+        .then(data => {
+          country_area[data.key] = data.area
+          return country_area
+        })
+      }, {})
+      .then(country_area => {
+        return resolve(country_area)
+      })
+    })
+  });
+}
+
+
+/**
+ * This function will return area of specified country in square kilometers
+ * @param  {String} path     path of input folder
+ * @param {String} country  Country for which we are fetching area
+ * @return {Promise} Fulfilled when records are returned
+ */
+const getAreaFromShapeFile = (path, country) => {
+  return new Promise((resolve, reject) => {
+    let key, area
+    fs.readFileAsync(path + country + `/${country}_adm0.csv`, 'utf8')
+    .then(content => {
+      csv()
+      .fromString(content)
+      .on('json', jsonData => {
+        key = jsonData.ISO.toLowerCase()
+        area = parseInt(jsonData.SQKM)
+      })
+      .on('done', () => {
+        return resolve({ key, area })
+      })
+    })
+  });
+}
+
 
 /**
  * This function returns estimated number of imported cases based on
@@ -360,8 +411,9 @@ let calculateRiskByModel4 = (model_1, mosquito, cases) => {
 
 
 module.exports = {
-  getPopulationByKey,
+  getPopulation,
   getMosquito,
+  getArea,
   getTravelData,
   getCases,
   getRisk

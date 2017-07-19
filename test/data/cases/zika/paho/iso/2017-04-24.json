@@ -1,56 +1,349 @@
 {
     "date": "2017-04-24",
     "countries": {
-        "ecu": {
-            "new_cases_this_week": 60,
-            "iso_week": "2017-04-24",
-            "epi_weeks": {
-                "2017-04-27": 4,
-                "2017-05-04": 3
-            },
-            "epi_week_2_cumulative": {
-                "2017-04-27": 1300,
-                "2017-05-04": 1300
-            },
-            "epi_week_2_cases_per_day": {
-                "2017-04-27": 15,
-                "2017-05-04": 0
-            },
-            "cases_cumulative": 1300
-        },
-        "bra": {
-            "new_cases_this_week": 0,
-            "iso_week": "2017-04-24",
-            "epi_weeks": {
-                "2017-04-27": 4,
-                "2017-05-04": 3
-            },
-            "epi_week_2_cumulative": {
-                "2017-04-27": 132021,
-                "2017-05-04": 132021
-            },
-            "epi_week_2_cases_per_day": {
-                "2017-04-27": 0,
-                "2017-05-04": 0
-            },
-            "cases_cumulative": 132021
-        },
-        "pri": {
-            "new_cases_this_week": 78,
-            "iso_week": "2017-04-24",
-            "epi_weeks": {
-                "2017-04-27": 4,
-                "2017-05-04": 3
-            },
-            "epi_week_2_cumulative": {
-                "2017-04-27": 40067,
-                "2017-05-04": 40134
-            },
-            "epi_week_2_cases_per_day": {
-                "2017-04-27": 12,
-                "2017-05-04": 10
-            },
-            "cases_cumulative": 40095.71428571428
+      "bra": {
+          "new_cases_this_week": {
+              "autochthonous_cases_confirmed": 0,
+              "autochthonous_cases_suspected": 0,
+              "deaths": 0,
+              "confirmed_congenital": 18.285714285714285,
+              "imported_cases": 0,
+              "incidence_rate": 0,
+              "population_x_1k": 0
+          },
+          "epi_weeks": {
+              "2017-04-27": 4,
+              "2017-05-04": 3
+          },
+          "epi_week_2_cases_per_day": {
+              "autochthonous_cases_confirmed": {
+                  "2017-04-27": 0,
+                  "2017-05-04": 0
+              },
+              "autochthonous_cases_suspected": {
+                  "2017-04-27": 0,
+                  "2017-05-04": 0
+              },
+              "deaths": {
+                  "2017-04-27": 0,
+                  "2017-05-04": 0
+              },
+              "confirmed_congenital": {
+                  "2017-04-27": 4.571428571428571,
+                  "2017-05-04": 0
+              },
+              "imported_cases": {
+                  "2017-04-27": 0,
+                  "2017-05-04": 0
+              },
+              "incidence_rate": {
+                  "2017-04-27": 0,
+                  "2017-05-04": 0
+              },
+              "population_x_1k": {
+                  "2017-04-27": 0,
+                  "2017-05-04": 0
+              }
+          },
+          "epi_week_2_cumulative": {
+              "autochthonous_cases_confirmed": {
+                  "2017-04-27": 132021,
+                  "2017-05-04": 132021
+              },
+              "autochthonous_cases_suspected": {
+                  "2017-04-27": 220213,
+                  "2017-05-04": 220213
+              },
+              "deaths": {
+                  "2017-04-27": 11,
+                  "2017-05-04": 11
+              },
+              "confirmed_congenital": {
+                  "2017-04-27": 2653,
+                  "2017-05-04": 2653
+              },
+              "imported_cases": {
+                  "2017-04-27": 0,
+                  "2017-05-04": 0
+              },
+              "incidence_rate": {
+                  "2017-04-27": 168.08826406684705,
+                  "2017-05-04": 168.08826406684705
+              },
+              "population_x_1k": {
+                  "2017-04-27": 209553,
+                  "2017-05-04": 209553
+              }
+          },
+          "iso_week": "2017-04-24",
+          "cumulative": {
+              "autochthonous_cases_confirmed": 132021,
+              "autochthonous_cases_suspected": 220213,
+              "deaths": 11,
+              "confirmed_congenital": 2653,
+              "imported_cases": 0,
+              "incidence_rate": 168.08826406684707,
+              "population_x_1k": 209553,
+              "imported_and_autochthonous_cases_confirmed": 132021
+          }
+      },
+      "ecu": {
+          "new_cases_this_week": {
+              "autochthonous_cases_confirmed": 60.57142857142857,
+              "autochthonous_cases_suspected": 0,
+              "deaths": 0,
+              "confirmed_congenital": 0,
+              "imported_cases": 0,
+              "incidence_rate": 0.3669661248723405,
+              "population_x_1k": 0
+          },
+          "epi_weeks": {
+              "2017-04-27": 4,
+              "2017-05-04": 3
+          },
+          "epi_week_2_cases_per_day": {
+              "autochthonous_cases_confirmed": {
+                  "2017-04-27": 15.142857142857142,
+                  "2017-05-04": 0
+              },
+              "autochthonous_cases_suspected": {
+                  "2017-04-27": 0,
+                  "2017-05-04": 0
+              },
+              "deaths": {
+                  "2017-04-27": 0,
+                  "2017-05-04": 0
+              },
+              "confirmed_congenital": {
+                  "2017-04-27": 0,
+                  "2017-05-04": 0
+              },
+              "imported_cases": {
+                  "2017-04-27": 0,
+                  "2017-05-04": 0
+              },
+              "incidence_rate": {
+                  "2017-04-27": 0.09174153121808512,
+                  "2017-05-04": 0
+              },
+              "population_x_1k": {
+                  "2017-04-27": 0,
+                  "2017-05-04": 0
+              }
+          },
+          "epi_week_2_cumulative": {
+              "autochthonous_cases_confirmed": {
+                  "2017-04-27": 1300,
+                  "2017-05-04": 1300
+              },
+              "autochthonous_cases_suspected": {
+                  "2017-04-27": 3285,
+                  "2017-05-04": 3285
+              },
+              "deaths": {
+                  "2017-04-27": 0,
+                  "2017-05-04": 0
+              },
+              "confirmed_congenital": {
+                  "2017-04-27": 2,
+                  "2017-05-04": 2
+              },
+              "imported_cases": {
+                  "2017-04-27": 15,
+                  "2017-05-04": 15
+              },
+              "incidence_rate": {
+                  "2017-04-27": 27.77777777777778,
+                  "2017-05-04": 27.77777777777778
+              },
+              "population_x_1k": {
+                  "2017-04-27": 16506,
+                  "2017-05-04": 16506
+              }
+          },
+          "iso_week": "2017-04-24",
+          "cumulative": {
+              "autochthonous_cases_confirmed": 1300,
+              "autochthonous_cases_suspected": 3285,
+              "deaths": 0,
+              "confirmed_congenital": 2,
+              "imported_cases": 15,
+              "incidence_rate": 27.77777777777778,
+              "population_x_1k": 16506,
+              "imported_and_autochthonous_cases_confirmed": 1315
+          }
+      },
+      "mex": {
+          "new_cases_this_week": {
+              "autochthonous_cases_confirmed": 64.85714285714286,
+              "autochthonous_cases_suspected": 0,
+              "deaths": 0,
+              "confirmed_congenital": 0,
+              "imported_cases": 0,
+              "incidence_rate": 0.05042382670197071,
+              "population_x_1k": 0
+          },
+          "epi_weeks": {
+              "2017-04-27": 4,
+              "2017-05-04": 3
+          },
+          "epi_week_2_cases_per_day": {
+              "autochthonous_cases_confirmed": {
+                  "2017-04-27": 14.714285714285714,
+                  "2017-05-04": 2
+              },
+              "autochthonous_cases_suspected": {
+                  "2017-04-27": 0,
+                  "2017-05-04": 0
+              },
+              "deaths": {
+                  "2017-04-27": 0,
+                  "2017-05-04": 0
+              },
+              "confirmed_congenital": {
+                  "2017-04-27": 0,
+                  "2017-05-04": 0
+              },
+              "imported_cases": {
+                  "2017-04-27": 0,
+                  "2017-05-04": 0
+              },
+              "incidence_rate": {
+                  "2017-04-27": 0.011439766850887625,
+                  "2017-05-04": 0.001554919766140068
+              },
+              "population_x_1k": {
+                  "2017-04-27": 0,
+                  "2017-05-04": 0
+              }
+          },
+          "epi_week_2_cumulative": {
+              "autochthonous_cases_confirmed": {
+                  "2017-04-27": 8707,
+                  "2017-05-04": 8721
+              },
+              "autochthonous_cases_suspected": {
+                  "2017-04-27": 0,
+                  "2017-05-04": 0
+              },
+              "deaths": {
+                  "2017-04-27": 0,
+                  "2017-05-04": 0
+              },
+              "confirmed_congenital": {
+                  "2017-04-27": 5,
+                  "2017-05-04": 5
+              },
+              "imported_cases": {
+                  "2017-04-27": 15,
+                  "2017-05-04": 15
+              },
+              "incidence_rate": {
+                  "2017-04-27": 6.769343201890782,
+                  "2017-05-04": 6.780227640253763
+              },
+              "population_x_1k": {
+                  "2017-04-27": 128624,
+                  "2017-05-04": 128624
+              }
+          },
+          "iso_week": "2017-04-24",
+          "cumulative": {
+              "autochthonous_cases_confirmed": 8713,
+              "autochthonous_cases_suspected": 0,
+              "deaths": 0,
+              "confirmed_congenital": 5,
+              "imported_cases": 15,
+              "incidence_rate": 6.774007961189203,
+              "population_x_1k": 128624,
+              "imported_and_autochthonous_cases_confirmed": 8728
+          }
+      },
+      "pri": {
+          "new_cases_this_week": {
+              "autochthonous_cases_confirmed": 76.14285714285714,
+              "autochthonous_cases_suspected": 0,
+              "deaths": 0,
+              "confirmed_congenital": 7.428571428571429,
+              "imported_cases": 0,
+              "incidence_rate": 2.0685372763612127,
+              "population_x_1k": 0
+          },
+          "epi_weeks": {
+              "2017-04-27": 4,
+              "2017-05-04": 3
+          },
+          "epi_week_2_cases_per_day": {
+              "autochthonous_cases_confirmed": {
+                  "2017-04-27": 11.857142857142858,
+                  "2017-05-04": 9.571428571428571
+              },
+              "autochthonous_cases_suspected": {
+                  "2017-04-27": 0,
+                  "2017-05-04": 0
+              },
+              "deaths": {
+                  "2017-04-27": 0,
+                  "2017-05-04": 0
+              },
+              "confirmed_congenital": {
+                  "2017-04-27": 1.8571428571428572,
+                  "2017-05-04": 0
+              },
+              "imported_cases": {
+                  "2017-04-27": 0,
+                  "2017-05-04": 0
+              },
+              "incidence_rate": {
+                  "2017-04-27": 0.32211743703185547,
+                  "2017-05-04": 0.2600225094112635
+              },
+              "population_x_1k": {
+                  "2017-04-27": 0,
+                  "2017-05-04": 0
+              }
+          },
+          "epi_week_2_cumulative": {
+              "autochthonous_cases_confirmed": {
+                  "2017-04-27": 40067,
+                  "2017-05-04": 40134
+              },
+              "autochthonous_cases_suspected": {
+                  "2017-04-27": 0,
+                  "2017-05-04": 0
+              },
+              "deaths": {
+                  "2017-04-27": 5,
+                  "2017-05-04": 5
+              },
+              "confirmed_congenital": {
+                  "2017-04-27": 29,
+                  "2017-05-04": 29
+              },
+              "imported_cases": {
+                  "2017-04-27": 137,
+                  "2017-05-04": 137
+              },
+              "incidence_rate": {
+                  "2017-04-27": 1088.4813909263787,
+                  "2017-05-04": 1090.3015484922576
+              },
+              "population_x_1k": {
+                  "2017-04-27": 3681,
+                  "2017-05-04": 3681
+              }
+          },
+          "iso_week": "2017-04-24",
+          "cumulative": {
+              "autochthonous_cases_confirmed": 40095.71428571428,
+              "autochthonous_cases_suspected": 0,
+              "deaths": 5,
+              "confirmed_congenital": 29,
+              "imported_cases": 137,
+              "incidence_rate": 1089.2614584546125,
+              "population_x_1k": 3681,
+              "imported_and_autochthonous_cases_confirmed": 40232.71428571428
+          }
         }
     }
 }

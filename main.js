@@ -69,39 +69,24 @@ async.waterfall([
   },
   // get population from world-bank, currently it's fetched from the file POP.csv
   (callback) => {
-    let tempPopulation = {}
-    readFile(getConfig('population', 'default_source') + 'population.json', 'utf8')
+    main.getPopulation()
     .then(content => {
-      Object.assign(population, JSON.parse(content))
+      Object.assign(population, content)
       callback(null)
     })
   },
   // get area of each country. Area is fetched from directory ../shapefiles. In this we have separate directory for each country which holds csv and shp files for all admin levels.
   // For area we use admin level 0 files.
   (callback) => {
-    readDir(getConfig('shape_files'))
-    .then(countries => {
-      bluebird.each(countries, country => {
-        readFile(getConfig('shape_files') + country + '/' + `${country}_adm0.csv`, 'utf8')
-        .then(content => {
-          csvtojson()
-          .fromString(content)
-          .on('json',(json) => {
-            let key = json.ISO.toLowerCase()
-            if (key in population) {
-              let area = parseInt(json.SQKM)
-              population[key].sq_km = area
-              population[key].density = population[key].sum / area
-            }
-          })
-          .on('done',()=>{
-            // console.log('done', country);
-          })
-        })
+    main.getArea()
+    .then(content => {
+      Object.keys(content).forEach(country => {
+        if (country in population) {
+          population[country].sq_km = content[country]
+          population[country].density = population[country].sum / population[country].sq_km
+        }
       })
-      .then(() => {
-        callback(null)
-      })
+      callback(null)
     })
   },
   // get mosquito prevelence and fill in mosquito object
