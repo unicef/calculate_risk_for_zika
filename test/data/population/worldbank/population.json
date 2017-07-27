@@ -1,0 +1,26 @@
+{
+    "ecu": {
+        "country": "ecu",
+        "data_source": "worldbank",
+        "admin_level": 0,
+        "sum": 16144000
+    },
+    "bra": {
+        "country": "bra",
+        "data_source": "worldbank",
+        "admin_level": 0,
+        "sum": 207848000
+    },
+    "mex": {
+        "country": "mex",
+        "data_source": "worldbank",
+        "admin_level": 0,
+        "sum": 127017000
+    },
+    "pri": {
+        "country": "pri",
+        "data_source": "worldbank",
+        "admin_level": 0,
+        "sum": 3474000
+    }
+}
