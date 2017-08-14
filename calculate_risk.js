@@ -428,8 +428,8 @@ let calculateRiskByModel3 = (model_1, population) => {
         model_3.score_cummulative =
         model_1_for_country.score_cummulative * population[country].density;
       } else {
-        model_1[case_date][country].model_3.score_new = 'NA'
-        model_1[case_date][country].model_3.score_cummulative = 'NA'
+        model_3.score_new = 'NA'
+        model_3.score_cummulative = 'NA'
       }
       model_1[case_date][country].model_3 = {
         score_new: model_3.score_new,

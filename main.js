@@ -102,7 +102,7 @@ async.waterfall([
         .then((risk) => {
         // write it in a file at output_path/disease/date.json
           console.log(`writting ${date}.json`);
-          const printString = `${getConfig('output_path')}/${disease}-worldbank/${date}.json`
+          const printString = `${getConfig('output_path')}/${disease}-worldbank-lint/${date}.json`
           fs.writeFileSync(printString, JSON.stringify(risk[date]));
         });
     }, { concurency: 1 })
