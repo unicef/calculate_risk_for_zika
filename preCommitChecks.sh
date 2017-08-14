@@ -1,6 +1,7 @@
 #!/bin/bash
 cd "$(git rev-parse --show-toplevel)"
 ESLINT="node_modules/.bin/eslint"
+MOCHA="node_modules/.bin/mocha"
 pwd
 
 if [[ ! -x "$ESLINT" ]]; then
@@ -16,23 +17,34 @@ if [[ "$STAGED_FILES" = "" ]]; then
   exit 0
 fi
 
-failed=0
+testFailed=0
+lintFailed=0
 for file in ${STAGED_FILES}; do
   git show :$file | $ESLINT --stdin --stdin-filename "$file"
   if [[ $? != 0 ]] ; then
-    failed=1
+    lintFailed=1
   fi
 done;
 
 # Re-add files since they may have been fixed
 # git add "${STAGED_FILES[@]}"
 
-if [[ $failed == 0 ]]; then
-  printf "\n\033[42mCOMMIT SUCCEEDED\033[0m\n"
-  exit 0
+if [[ $lintFailed == 0 ]]; then
+  printf "\n\033[42mJsLint Successfull\033[0m\n"
+  $MOCHA
+  if [[ $? != 0 ]] ; then
+    testFailed=1
+  fi
 else
   printf "\n\033[41mCOMMIT FAILED:\033[0m Fix eslint errors and try again\n"
   exit 1
 fi
-#
-# exit $?
+
+if [[ $testFailed == 0 ]]; then
+  printf "\n\033[42mAll test passed\033[0m\n"
+  printf "\n\033[42mCOMMIT SUCCEEDED\033[0m\n"
+  exit 0
+else
+  printf "\n\033[41mCOMMIT FAILED:\033[0m Fix tests and try again\n"
+  exit 1
+fi
