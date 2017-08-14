@@ -33,12 +33,8 @@ if [[ $lintFailed == 0 ]]; then
   printf "\n\033[42mJsLint Successfull\033[0m\n"
   $MOCHA
   if [[ $? != 0 ]] ; then
-    printf "nope"
     testFailed=1
-  else
-    printf "yup"
   fi
-  exit 0
 else
   printf "\n\033[41mCOMMIT FAILED:\033[0m Fix eslint errors and try again\n"
   exit 1

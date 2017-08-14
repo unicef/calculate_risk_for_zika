@@ -203,7 +203,7 @@ describe('testing models', () => {
         const result = model[date]
 
         chai.expect(result.bra.model_0.score_new).to.equal('NA')
-        chai.expect(result.bra.model_0.score_cummulative).to.equal('NA1')
+        chai.expect(result.bra.model_0.score_cummulative).to.equal('NA')
 
         chai.expect(result.mex.model_0.score_new)
           .to.equal(expected_model.model_0.score_new)
