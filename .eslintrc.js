@@ -1,7 +1,8 @@
 module.exports = {
     'extends': 'airbnb',
     env: {
-        'es6': true
+        'es6': true,
+        'jasmine': true
     },
     rules: {
         // need to keep as it's known issue with a dependency of airbnb standards
